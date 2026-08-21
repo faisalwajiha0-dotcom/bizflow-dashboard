@@ -3,6 +3,7 @@ import type { ComponentProps } from "../../node_modules/vue-component-type-helpe
 
 declare module 'nuxt/app' {
   interface NuxtLayouts {
+    dashboard: ComponentProps<typeof import("C:/Users/Wajiha Faisal/Documents/GitHub/bizflow-dashboard/app/layouts/dashboard.vue").default>
   }
   export type LayoutKey = keyof NuxtLayouts extends never ? string : keyof NuxtLayouts
   interface PageMeta {
