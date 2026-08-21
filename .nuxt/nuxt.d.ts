@@ -1,5 +1,6 @@
-/// <reference types="@nuxt/devtools" />
 /// <reference types="@nuxt/ui" />
+/// <reference types="@nuxt/devtools" />
+/// <reference types="@nuxt/eslint" />
 /// <reference types="@nuxt/telemetry" />
 /// <reference path="types/nitro-layouts.d.ts" />
 /// <reference path="types/builder-env.d.ts" />
@@ -18,5 +19,6 @@
 /// <reference path="types/imports.d.ts" />
 /// <reference path="schema/nuxt.schema.d.ts" />
 /// <reference path="types/nitro.d.ts" />
+/// <reference path="./eslint-typegen.d.ts" />
 
 export {}
