@@ -148,7 +148,7 @@ definePageMeta({
 
     <!-- Charts -->
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-3">
-      <!-- Sales -->
+      <!-- Sales Overview -->
       <div
         class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm xl:col-span-2">
         <div class="flex items-center justify-between">
@@ -170,22 +170,46 @@ definePageMeta({
           </select>
         </div>
 
-        <div class="mt-8 flex h-64 items-end justify-between gap-3">
-          <div
-            v-for="(height, index) in [38, 52, 64, 43, 75, 61, 70, 88, 67, 92, 78, 86]"
-            :key="index"
-            class="flex flex-1 flex-col items-center justify-end gap-2">
+        <!-- Chart -->
+        <div class="mt-8 h-72">
+          <div class="flex h-full items-end gap-4 border-b border-slate-200 px-2">
             <div
-              class="w-full max-w-10 rounded-t-lg bg-[#2879D8] transition hover:bg-[#174A78]"
-              :style="{ height: `${height}%` }" />
+              v-for="(height, index) in [
+                38, 52, 64, 43, 75, 61,
+                70, 88, 67, 92, 78, 86,
+              ]"
+              :key="index"
+              class="group flex h-full flex-1 flex-col justify-end">
+              <!-- Bar -->
+              <div class="flex h-full items-end justify-center">
+                <div
+                  class="w-full max-w-10 rounded-t-lg bg-[#4D93E8] transition-all duration-300 group-hover:bg-[#174A78]"
+                  :style="{ height: `${height}%` }" />
+              </div>
 
-            <span class="text-xs text-slate-400">
-              {{ ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'][index] }}
-            </span>
+              <!-- Month -->
+              <div class="pt-3 text-center text-xs text-slate-400">
+                {{
+                  [
+                    'Sep',
+                    'Oct',
+                    'Nov',
+                    'Dec',
+                    'Jan',
+                    'Feb',
+                    'Mar',
+                    'Apr',
+                    'May',
+                    'Jun',
+                    'Jul',
+                    'Aug',
+                  ][index]
+                }}
+              </div>
+            </div>
           </div>
         </div>
       </div>
-
       <!-- Performance -->
       <div
         class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
