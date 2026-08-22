@@ -11,10 +11,10 @@ definePageMeta({
       class="relative overflow-hidden rounded-[26px] bg-[#174A78] px-9 py-9 text-white shadow-lg">
       <!-- Decorative circles -->
       <div
-        class="absolute -right-20 -top-24 h-72 w-72 rounded-full border-[35px] border-white/5" />
+        class="absolute -right-20 -top-24 h-72 w-72 rounded-full border-35 border-white/5" />
 
       <div
-        class="absolute -bottom-32 right-48 h-64 w-64 rounded-full border-[30px] border-white/5" />
+        class="absolute -bottom-32 right-48 h-64 w-64 rounded-full border-30 border-white/5" />
 
       <div class="relative z-10 max-w-3xl">
         <p class="mb-2 text-sm font-medium text-blue-200">
