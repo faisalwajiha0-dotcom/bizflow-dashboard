@@ -17,4 +17,10 @@
     "source.fixAll": "never",
     "source.fixAll.eslint": "always"
   },
+  "cSpell.words": [
+    "Hassan",
+    "Maham",
+    "Tariq",
+    "Usman"
+  ],
 }
