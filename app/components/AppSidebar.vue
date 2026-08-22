@@ -24,7 +24,7 @@
       <NuxtLink
         to="/"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">⌂</span>
         Dashboard
       </NuxtLink>
@@ -32,7 +32,7 @@
       <NuxtLink
         to="/products"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">▣</span>
         Products
       </NuxtLink>
@@ -40,7 +40,7 @@
       <NuxtLink
         to="/orders"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">🛒</span>
         Orders
       </NuxtLink>
@@ -48,7 +48,7 @@
       <NuxtLink
         to="/customers"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">♙</span>
         Customers
       </NuxtLink>
@@ -56,7 +56,7 @@
       <NuxtLink
         to="/analytics"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">↗</span>
         Analytics
       </NuxtLink>
@@ -64,7 +64,7 @@
       <NuxtLink
         to="/notifications"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">♢</span>
         Notifications
 
@@ -80,7 +80,7 @@
       <NuxtLink
         to="/profile"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">◎</span>
         Profile
       </NuxtLink>
@@ -88,7 +88,7 @@
       <NuxtLink
         to="/settings"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-[#4D93E8] text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg">
         <span class="text-lg">⚙</span>
         Settings
       </NuxtLink>
