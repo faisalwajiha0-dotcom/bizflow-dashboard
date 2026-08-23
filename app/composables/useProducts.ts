@@ -48,14 +48,14 @@ const defaultProducts: Product[] = [
 ]
 
 export const useProducts = () => {
-  const products = useState<Product[]>('bizflow-products', () => [])
+  const products = useState<Product[]>('dashboard-products', () => [])
 
   const loadProducts = () => {
     if (!import.meta.client) {
       return
     }
 
-    const savedProducts = localStorage.getItem('bizflow-products')
+    const savedProducts = localStorage.getItem('dashboard-products')
 
     if (savedProducts) {
       try {
@@ -64,7 +64,7 @@ export const useProducts = () => {
       catch {
         products.value = [...defaultProducts]
         localStorage.setItem(
-          'bizflow-products',
+          'dashboard-products',
           JSON.stringify(products.value)
         )
       }
@@ -73,7 +73,7 @@ export const useProducts = () => {
       products.value = [...defaultProducts]
 
       localStorage.setItem(
-        'bizflow-products',
+        'dashboard-products',
         JSON.stringify(products.value)
       )
     }
@@ -85,7 +85,7 @@ export const useProducts = () => {
     }
 
     localStorage.setItem(
-      'bizflow-products',
+      'dashboard-products',
       JSON.stringify(products.value)
     )
   }
@@ -96,7 +96,7 @@ export const useProducts = () => {
       ...product
     }
 
-    products.value.push(newProduct)
+    products.value.unshift(newProduct)
     saveProducts()
 
     return newProduct
