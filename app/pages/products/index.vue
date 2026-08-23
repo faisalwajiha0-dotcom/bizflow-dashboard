@@ -3,218 +3,280 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const products = [
-  {
-    name: 'Wireless Headphones',
-    sku: 'WH-001',
-    category: 'Electronics',
-    price: '$129.00',
-    stock: 48,
-    status: 'In Stock',
-    icon: '🎧',
-    iconBg: 'bg-blue-50'
-  },
-  {
-    name: 'Smart Watch',
-    sku: 'SW-002',
-    category: 'Electronics',
-    price: '$189.00',
-    stock: 32,
-    status: 'In Stock',
-    icon: '⌚',
-    iconBg: 'bg-purple-50'
-  },
-  {
-    name: 'Mechanical Keyboard',
-    sku: 'MK-003',
-    category: 'Accessories',
-    price: '$75.00',
-    stock: 9,
-    status: 'Low Stock',
-    icon: '⌨️',
-    iconBg: 'bg-orange-50'
-  },
-  {
-    name: 'Laptop Stand',
-    sku: 'LS-004',
-    category: 'Accessories',
-    price: '$65.00',
-    stock: 0,
-    status: 'Out of Stock',
-    icon: '💻',
-    iconBg: 'bg-emerald-50'
+const {
+  products,
+  loadProducts,
+  deleteProduct,
+  totalProducts,
+  inStockProducts,
+  lowStockProducts,
+  outOfStockProducts
+} = useProducts()
+
+const searchQuery = ref('')
+const selectedCategory = ref('All Categories')
+const selectedStatus = ref('All Status')
+const currentPage = ref(1)
+
+const itemsPerPage = 4
+
+onMounted(() => {
+  loadProducts()
+})
+
+const filteredProducts = computed(() => {
+  let result = products.value
+
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+
+    result = result.filter(product =>
+      product.name.toLowerCase().includes(query)
+      || product.sku.toLowerCase().includes(query)
+      || product.category.toLowerCase().includes(query)
+    )
   }
-]
+
+  if (selectedCategory.value !== 'All Categories') {
+    result = result.filter(
+      product => product.category === selectedCategory.value
+    )
+  }
+
+  if (selectedStatus.value !== 'All Status') {
+    result = result.filter(product => {
+      if (selectedStatus.value === 'In Stock') {
+        return product.stock > 10
+      }
+
+      if (selectedStatus.value === 'Low Stock') {
+        return product.stock > 0 && product.stock <= 10
+      }
+
+      if (selectedStatus.value === 'Out of Stock') {
+        return product.stock === 0
+      }
+
+      return true
+    })
+  }
+
+  return result
+})
+
+const totalPages = computed(() => {
+  return Math.max(
+    1,
+    Math.ceil(filteredProducts.value.length / itemsPerPage)
+  )
+})
+
+const paginatedProducts = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+
+  return filteredProducts.value.slice(
+    start,
+    start + itemsPerPage
+  )
+})
+
+const showingFrom = computed(() => {
+  if (filteredProducts.value.length === 0) {
+    return 0
+  }
+
+  return (currentPage.value - 1) * itemsPerPage + 1
+})
+
+const showingTo = computed(() => {
+  return Math.min(
+    currentPage.value * itemsPerPage,
+    filteredProducts.value.length
+  )
+})
+
+const categories = computed(() => {
+  return [
+    'All Categories',
+    ...new Set(products.value.map(product => product.category))
+  ]
+})
+
+const getStatus = (stock: number) => {
+  if (stock === 0) {
+    return 'Out of Stock'
+  }
+
+  if (stock <= 10) {
+    return 'Low Stock'
+  }
+
+  return 'In Stock'
+}
+
+const confirmDelete = (id: number, name: string) => {
+  const confirmed = window.confirm(
+    `Are you sure you want to delete "${name}"?`
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  deleteProduct(id)
+
+  if (
+    currentPage.value > totalPages.value
+  ) {
+    currentPage.value = totalPages.value
+  }
+}
+
+watch(
+  [searchQuery, selectedCategory, selectedStatus],
+  () => {
+    currentPage.value = 1
+  }
+)
+
+watch(totalPages, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = totalPages.value
+  }
+})
 </script>
 
 <template>
-  <div class="min-h-full bg-[#F5F8FC] px-4 py-4 sm:px-8 lg:px-10">
-    <!-- Page Heading -->
-    <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+  <div class="space-y-7">
+    <!-- Page Header -->
+    <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
       <div>
-        <div class="mb-3 flex items-center gap-2 text-sm font-medium text-[#2879D8]">
-          <span class="h-2 w-2 rounded-full bg-blue-400" />
+        <p class="text-sm font-medium text-[#2879D8]">
           Inventory Management
-        </div>
+        </p>
 
-        <h1 class="text-3xl font-bold tracking-tight text-[#173B63] sm:text-4xl">
+        <h1 class="mt-1 text-3xl font-bold text-[#173B63]">
           Products
         </h1>
 
-        <p class="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-          Manage your products, track inventory and keep your store organized.
+        <p class="mt-2 text-sm text-slate-500">
+          Manage your products, inventory and pricing.
         </p>
       </div>
 
       <NuxtLink
         to="/products/add"
-        class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#2879D8] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition duration-200 hover:-translate-y-0.5 hover:bg-[#174A78]">
-        <span class="text-xl leading-none">+</span>
+        class="inline-flex items-center justify-center rounded-xl bg-[#2879D8] px-5 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-[#174A78]">
+        <span class="mr-2 text-lg">+</span>
         Add Product
       </NuxtLink>
     </div>
 
-    <!-- Statistics -->
-    <div class="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+    <!-- Stats -->
+    <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
       <!-- Total -->
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-medium text-slate-500">
-              Total Products
-            </p>
-
-            <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              186
-            </h2>
-          </div>
-
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-lg text-[#2879D8]">
-            ▦
-          </div>
-        </div>
-
-        <p class="mt-4 text-xs font-medium text-blue-600">
-          ↑ 8 added this month
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">
+          Total Products
         </p>
+
+        <div class="mt-2 flex items-end justify-between">
+          <h2 class="text-3xl font-bold text-[#173B63]">
+            {{ totalProducts }}
+          </h2>
+
+          <span class="rounded-lg bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-600">
+            Products
+          </span>
+        </div>
       </div>
 
       <!-- In Stock -->
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-medium text-slate-500">
-              In Stock
-            </p>
-
-            <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              164
-            </h2>
-          </div>
-
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-lg text-emerald-600">
-            ✓
-          </div>
-        </div>
-
-        <p class="mt-4 text-xs font-medium text-emerald-600">
-          88% of total products
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">
+          In Stock
         </p>
+
+        <div class="mt-2 flex items-end justify-between">
+          <h2 class="text-3xl font-bold text-[#173B63]">
+            {{ inStockProducts }}
+          </h2>
+
+          <span class="rounded-lg bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-600">
+            Healthy
+          </span>
+        </div>
       </div>
 
       <!-- Low Stock -->
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-medium text-slate-500">
-              Low Stock
-            </p>
-
-            <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              14
-            </h2>
-          </div>
-
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-lg text-orange-500">
-            !
-          </div>
-        </div>
-
-        <p class="mt-4 text-xs font-medium text-orange-600">
-          Needs your attention
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">
+          Low Stock
         </p>
+
+        <div class="mt-2 flex items-end justify-between">
+          <h2 class="text-3xl font-bold text-[#173B63]">
+            {{ lowStockProducts }}
+          </h2>
+
+          <span class="rounded-lg bg-orange-50 px-2 py-1 text-xs font-semibold text-orange-600">
+            Attention
+          </span>
+        </div>
       </div>
 
       <!-- Out of Stock -->
-      <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-sm font-medium text-slate-500">
-              Out of Stock
-            </p>
-
-            <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              8
-            </h2>
-          </div>
-
-          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50 text-lg text-red-500">
-            ×
-          </div>
-        </div>
-
-        <p class="mt-4 text-xs font-medium text-red-500">
-          Restocking required
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <p class="text-sm text-slate-500">
+          Out of Stock
         </p>
+
+        <div class="mt-2 flex items-end justify-between">
+          <h2 class="text-3xl font-bold text-[#173B63]">
+            {{ outOfStockProducts }}
+          </h2>
+
+          <span class="rounded-lg bg-red-50 px-2 py-1 text-xs font-semibold text-red-600">
+            Restock
+          </span>
+        </div>
       </div>
     </div>
 
-    <!-- Main Products Card -->
-    <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-      <!-- Card Header -->
-      <div class="border-b border-slate-100 px-6 py-6 sm:px-7">
-        <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h2 class="text-xl font-bold text-[#173B63]">
-              Product Inventory
-            </h2>
+    <!-- Products Table -->
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <!-- Toolbar -->
+      <div class="flex flex-col gap-4 border-b border-slate-100 p-6 lg:flex-row lg:items-center lg:justify-between">
+        <!-- Search -->
+        <div
+          class="flex w-full items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 lg:max-w-md">
+          <span class="text-slate-400">
+            ⌕
+          </span>
 
-            <p class="mt-1.5 text-sm text-slate-500">
-              View and manage all products in your store.
-            </p>
-          </div>
-
-          <button
-            class="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-[#2879D8] hover:text-[#2879D8]">
-            <span>⇅</span>
-            Sort Products
-          </button>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search products..."
+            class="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400">
         </div>
 
-        <!-- Search & Filters -->
-        <div class="mt-6 flex flex-col gap-3 md:flex-row">
-          <div
-            class="flex h-12 flex-1 items-center gap-3 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 transition focus-within:border-[#2879D8] focus-within:bg-white">
-            <span class="text-lg text-slate-400">
-              ⌕
-            </span>
-
-            <input
-              type="text"
-              placeholder="Search by product name or SKU..."
-              class="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400">
-          </div>
-
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3">
           <select
-            class="h-12 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] focus:bg-white">
-            <option>All Categories</option>
-            <option>Electronics</option>
-            <option>Accessories</option>
-            <option>Furniture</option>
+            v-model="selectedCategory"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 outline-none focus:border-[#2879D8]">
+            <option
+              v-for="category in categories"
+              :key="category"
+              :value="category">
+              {{ category }}
+            </option>
           </select>
 
           <select
-            class="h-12 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] focus:bg-white">
+            v-model="selectedStatus"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 outline-none focus:border-[#2879D8]">
             <option>All Status</option>
             <option>In Stock</option>
             <option>Low Stock</option>
@@ -223,50 +285,66 @@ const products = [
         </div>
       </div>
 
+      <!-- Empty State -->
+      <div
+        v-if="paginatedProducts.length === 0"
+        class="px-6 py-16 text-center">
+        <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-2xl">
+          🔍
+        </div>
+
+        <h3 class="mt-4 text-lg font-bold text-[#173B63]">
+          No products found
+        </h3>
+
+        <p class="mt-1 text-sm text-slate-500">
+          Try changing your search or filters.
+        </p>
+      </div>
+
       <!-- Table -->
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-225">
-          <thead>
-            <tr class="border-b border-slate-100 bg-[#FAFBFD]">
-              <th class="px-7 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+      <div
+        v-else
+        class="overflow-x-auto">
+        <table class="w-full min-w-212.5 text-left">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Product
               </th>
 
-              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Category
               </th>
 
-              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Price
               </th>
 
-              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Stock
               </th>
 
-              <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th class="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Status
               </th>
 
-              <th class="px-7 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Action
+              <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Actions
               </th>
             </tr>
           </thead>
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="product in products"
-              :key="product.sku"
-              class="transition hover:bg-[#F8FAFD]">
+              v-for="product in paginatedProducts"
+              :key="product.id"
+              class="transition hover:bg-slate-50">
               <!-- Product -->
-              <td class="px-7 py-5">
+              <td class="px-6 py-5">
                 <div class="flex items-center gap-4">
                   <div
-                    :class="[
-                      'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-xl',
-                      product.iconBg,
-                    ]">
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-xl">
                     {{ product.icon }}
                   </div>
 
@@ -276,65 +354,61 @@ const products = [
                     </p>
 
                     <p class="mt-1 text-xs text-slate-400">
-                      {{ product.sku }}
+                      SKU: {{ product.sku }}
                     </p>
                   </div>
                 </div>
               </td>
 
               <!-- Category -->
-              <td class="px-6 py-5">
-                <span class="text-sm text-slate-600">
-                  {{ product.category }}
-                </span>
+              <td class="px-6 py-5 text-sm text-slate-600">
+                {{ product.category }}
               </td>
 
               <!-- Price -->
-              <td class="px-6 py-5">
-                <span class="text-sm font-semibold text-[#173B63]">
-                  {{ product.price }}
-                </span>
+              <td class="px-6 py-5 text-sm font-semibold text-[#173B63]">
+                ${{ product.price.toFixed(2) }}
               </td>
 
               <!-- Stock -->
-              <td class="px-6 py-5">
-                <span class="text-sm text-slate-600">
-                  {{ product.stock }}
-                </span>
+              <td class="px-6 py-5 text-sm text-slate-600">
+                {{ product.stock }}
               </td>
 
               <!-- Status -->
               <td class="px-6 py-5">
                 <span
-                  v-if="product.status === 'In Stock'"
-                  class="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+                  v-if="getStatus(product.stock) === 'In Stock'"
+                  class="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
                   In Stock
                 </span>
 
                 <span
-                  v-else-if="product.status === 'Low Stock'"
-                  class="inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-600">
+                  v-else-if="getStatus(product.stock) === 'Low Stock'"
+                  class="rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-600">
                   Low Stock
                 </span>
 
                 <span
                   v-else
-                  class="inline-flex rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600">
+                  class="rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600">
                   Out of Stock
                 </span>
               </td>
 
               <!-- Actions -->
-              <td class="px-7 py-5">
+              <td class="px-6 py-5">
                 <div class="flex justify-end gap-2">
                   <NuxtLink
-                    :to="`/products/${product.sku}/edit`"
-                    class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
+                    :to="`/products/${product.id}/edit`"
+                    class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
                     Edit
                   </NuxtLink>
 
                   <button
-                    class="rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50">
+                    type="button"
+                    class="rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
+                    @click="confirmDelete(product.id, product.name)">
                     Delete
                   </button>
                 </div>
@@ -344,39 +418,60 @@ const products = [
         </table>
       </div>
 
-      <!-- Bottom -->
-      <div class="flex flex-col gap-4 border-t border-slate-100 px-7 py-5 sm:flex-row sm:items-center sm:justify-between">
+      <!-- Pagination -->
+      <div
+        v-if="filteredProducts.length > 0"
+        class="flex flex-col gap-3 border-t border-slate-100 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
         <p class="text-sm text-slate-500">
           Showing
-          <span class="font-semibold text-slate-700">1–4</span>
+          <span class="font-semibold text-slate-700">
+            {{ showingFrom }}–{{ showingTo }}
+          </span>
           of
-          <span class="font-semibold text-slate-700">186</span>
+          <span class="font-semibold text-slate-700">
+            {{ filteredProducts.length }}
+          </span>
           products
         </p>
 
         <div class="flex items-center gap-2">
           <button
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-400">
+            type="button"
+            :disabled="currentPage === 1"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm transition"
+            :class="
+              currentPage === 1
+                ? 'cursor-not-allowed text-slate-300'
+                : 'text-slate-600 hover:bg-slate-50'
+            "
+            @click="currentPage--">
             Previous
           </button>
 
           <button
-            class="rounded-lg bg-[#2879D8] px-3 py-2 text-sm font-semibold text-white shadow-sm">
-            1
+            v-for="page in totalPages"
+            :key="page"
+            type="button"
+            class="rounded-lg px-3 py-2 text-sm font-semibold transition"
+            :class="
+              currentPage === page
+                ? 'bg-[#2879D8] text-white'
+                : 'border border-slate-200 text-slate-600 hover:bg-slate-50'
+            "
+            @click="currentPage = page">
+            {{ page }}
           </button>
 
           <button
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50">
-            2
-          </button>
-
-          <button
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50">
-            3
-          </button>
-
-          <button
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50">
+            type="button"
+            :disabled="currentPage === totalPages"
+            class="rounded-lg border border-slate-200 px-3 py-2 text-sm transition"
+            :class="
+              currentPage === totalPages
+                ? 'cursor-not-allowed text-slate-300'
+                : 'text-slate-600 hover:bg-slate-50'
+            "
+            @click="currentPage++">
             Next
           </button>
         </div>
