@@ -48,7 +48,7 @@ const products = [
 </script>
 
 <template>
-  <div class="min-h-full bg-[#F5F8FC] px-5 py-8 sm:px-8 lg:px-10">
+  <div class="min-h-full bg-[#F5F8FC] px-4 py-4 sm:px-8 lg:px-10">
     <!-- Page Heading -->
     <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div>

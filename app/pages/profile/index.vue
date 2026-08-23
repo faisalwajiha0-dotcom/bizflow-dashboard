@@ -14,7 +14,7 @@ const profile = {
 </script>
 
 <template>
-  <div class="min-h-full bg-[#F5F8FC] px-5 py-5 sm:px-8 lg:px-10">
+  <div class="min-h-full bg-[#F5F8FC] px-4 py-4 sm:px-8 lg:px-10">
     <!-- Page Header -->
     <div class="mb-6">
       <div class="mb-3 flex items-center gap-2 text-sm font-medium text-[#2879D8]">
