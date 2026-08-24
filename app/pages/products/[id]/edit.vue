@@ -6,6 +6,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const {
   loadProducts,
@@ -78,6 +79,11 @@ const submitEdit = () => {
     errorMessage.value = 'Product could not be found.'
     return
   }
+  toast.add({
+    title: 'Product Updated',
+    description: `${form.name} has been updated successfully.`,
+    color: 'success'
+  })
 
   router.push('/products')
 }

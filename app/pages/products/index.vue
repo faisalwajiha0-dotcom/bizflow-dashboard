@@ -114,24 +114,17 @@ const getStatus = (stock: number) => {
   return 'In Stock'
 }
 
+const toast = useToast()
+
 const confirmDelete = (id: number, name: string) => {
-  const confirmed = window.confirm(
-    `Are you sure you want to delete "${name}"?`
-  )
-
-  if (!confirmed) {
-    return
-  }
-
   deleteProduct(id)
 
-  if (
-    currentPage.value > totalPages.value
-  ) {
-    currentPage.value = totalPages.value
-  }
+  toast.add({
+    title: 'Product Deleted Successfully',
+    description: `${name} has been removed from your products.`,
+    color: 'success'
+  })
 }
-
 watch(
   [searchQuery, selectedCategory, selectedStatus],
   () => {

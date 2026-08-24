@@ -128,6 +128,7 @@ declare global {
   const useNuxtApp: typeof import('../../node_modules/nuxt/dist/app/nuxt').useNuxtApp
   const useNuxtData: typeof import('../../node_modules/nuxt/dist/app/composables/asyncData').useNuxtData
   const useNuxtDevTools: typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools').useNuxtDevTools
+  const useOrders: typeof import('../../app/composables/useOrders').useOrders
   const useOverlay: typeof import('../../node_modules/@nuxt/ui/dist/runtime/composables/useOverlay').useOverlay
   const usePreviewMode: typeof import('../../node_modules/nuxt/dist/app/composables/preview').usePreviewMode
   const useProducts: typeof import('../../app/composables/useProducts').useProducts
@@ -218,6 +219,9 @@ declare global {
   // @ts-ignore
   export type { PageMeta } from '../../node_modules/nuxt/dist/app/composables/pages'
   import('../../node_modules/nuxt/dist/app/composables/pages')
+  // @ts-ignore
+  export type { Order } from '../../app/composables/useOrders'
+  import('../../app/composables/useOrders')
   // @ts-ignore
   export type { Product } from '../../app/composables/useProducts'
   import('../../app/composables/useProducts')
@@ -353,6 +357,7 @@ declare module 'vue' {
     readonly useNuxtApp: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/nuxt')['useNuxtApp']>
     readonly useNuxtData: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/asyncData')['useNuxtData']>
     readonly useNuxtDevTools: UnwrapRef<typeof import('../../node_modules/@nuxt/devtools/dist/runtime/use-nuxt-devtools')['useNuxtDevTools']>
+    readonly useOrders: UnwrapRef<typeof import('../../app/composables/useOrders')['useOrders']>
     readonly useOverlay: UnwrapRef<typeof import('../../node_modules/@nuxt/ui/dist/runtime/composables/useOverlay')['useOverlay']>
     readonly usePreviewMode: UnwrapRef<typeof import('../../node_modules/nuxt/dist/app/composables/preview')['usePreviewMode']>
     readonly useProducts: UnwrapRef<typeof import('../../app/composables/useProducts')['useProducts']>
