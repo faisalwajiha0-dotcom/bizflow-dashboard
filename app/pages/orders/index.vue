@@ -2,64 +2,117 @@
 definePageMeta({
   layout: 'dashboard'
 })
+const selectedStatus = ref('All Status')
+const selectedDate = ref('All Dates')
+const sortOrder = ref('Newest')
+const showSortMenu = ref(false)
+const {
+  orders,
+  loadOrders,
+  updateOrderStatus,
+  deleteOrder
+} = useOrders()
 
-const orders = [
-  {
-    id: '#ORD-1048',
-    customer: 'Ayesha Khan',
-    email: 'ayesha.khan@email.com',
-    product: 'Wireless Headphones',
-    date: 'Aug 22, 2026',
-    amount: '$129.00',
-    status: 'Delivered',
-    initials: 'AK',
-    avatar: 'bg-blue-100 text-[#2879D8]'
-  },
-  {
-    id: '#ORD-1047',
-    customer: 'Hassan Ali',
-    email: 'hassan.ali@email.com',
-    product: 'Smart Watch',
-    date: 'Aug 22, 2026',
-    amount: '$189.00',
-    status: 'Processing',
-    initials: 'HA',
-    avatar: 'bg-purple-100 text-purple-600'
-  },
-  {
-    id: '#ORD-1046',
-    customer: 'Sara Ahmed',
-    email: 'sara.ahmed@email.com',
-    product: 'Mechanical Keyboard',
-    date: 'Aug 21, 2026',
-    amount: '$75.00',
-    status: 'Shipped',
-    initials: 'SA',
-    avatar: 'bg-emerald-100 text-emerald-600'
-  },
-  {
-    id: '#ORD-1045',
-    customer: 'Maham Fatima',
-    email: 'maham.fatima@email.com',
-    product: 'Laptop Stand',
-    date: 'Aug 21, 2026',
-    amount: '$65.00',
-    status: 'Pending',
-    initials: 'MF',
-    avatar: 'bg-pink-100 text-pink-600'
-  },
-  {
-    id: '#ORD-1044',
-    customer: 'Usman Tariq',
-    email: 'usman.tariq@email.com',
-    product: 'Wireless Headphones',
-    date: 'Aug 20, 2026',
-    amount: '$258.00',
-    status: 'Cancelled',
-    initials: 'UT',
-    avatar: 'bg-orange-100 text-orange-600'
+onMounted(() => {
+  loadOrders()
+})
+
+const filteredOrders = computed(() => {
+  let result = [...orders.value]
+
+  // Status filter
+  if (selectedStatus.value !== 'All Status') {
+    result = result.filter(
+      order => order.status === selectedStatus.value
+    )
   }
-]
+
+  // Date filter
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  if (selectedDate.value !== 'All Dates') {
+    result = result.filter(order => {
+      const orderDate = new Date(order.date)
+      orderDate.setHours(0, 0, 0, 0)
+
+      if (selectedDate.value === 'Today') {
+        return orderDate.getTime() === today.getTime()
+      }
+
+      if (selectedDate.value === 'This Week') {
+        const weekStart = new Date(today)
+        const day = weekStart.getDay()
+
+        weekStart.setDate(
+          weekStart.getDate() - day
+        )
+
+        return orderDate >= weekStart && orderDate <= today
+      }
+
+      if (selectedDate.value === 'This Month') {
+        return (
+          orderDate.getMonth() === today.getMonth()
+          && orderDate.getFullYear() === today.getFullYear()
+        )
+      }
+
+      return true
+    })
+  }
+
+  // Sorting
+  result.sort((a, b) => {
+    const dateA = new Date(a.date).getTime()
+    const dateB = new Date(b.date).getTime()
+
+    if (sortOrder.value === 'Newest') {
+      return dateB - dateA
+    }
+
+    if (sortOrder.value === 'Oldest') {
+      return dateA - dateB
+    }
+
+    if (sortOrder.value === 'Amount High') {
+      return parseFloat(b.amount.replace(/[^0-9.]/g, ''))
+        - parseFloat(a.amount.replace(/[^0-9.]/g, ''))
+    }
+
+    if (sortOrder.value === 'Amount Low') {
+      return parseFloat(a.amount.replace(/[^0-9.]/g, ''))
+        - parseFloat(b.amount.replace(/[^0-9.]/g, ''))
+    }
+
+    if (sortOrder.value === 'Customer A-Z') {
+      return a.customer.localeCompare(b.customer)
+    }
+
+    return 0
+  })
+
+  return result
+})
+
+const changeStatus = (
+  id: string,
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled'
+) => {
+  updateOrderStatus(id, status)
+}
+
+const removeOrder = (id: string) => {
+  const confirmed = window.confirm(
+    'Are you sure you want to delete this order?'
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  deleteOrder(id)
+}
 </script>
 
 <template>
@@ -81,11 +134,12 @@ const orders = [
         </p>
       </div>
 
-      <button
+      <NuxtLink
+        to="/orders/create"
         class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#2879D8] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition duration-200 hover:-translate-y-0.5 hover:bg-[#174A78]">
         <span class="text-lg">+</span>
         Create Order
-      </button>
+      </NuxtLink>
     </div>
 
     <!-- Statistics -->
@@ -208,11 +262,54 @@ const orders = [
             </p>
           </div>
 
-          <button
-            class="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-[#2879D8] hover:text-[#2879D8]">
-            <span>⇅</span>
-            Sort Orders
-          </button>
+          <div class="relative inline-block">
+            <button
+              type="button"
+              class="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-[#2879D8] hover:text-[#2879D8]"
+              @click="showSortMenu = !showSortMenu">
+              <span>⇅</span>
+              Sort Orders
+            </button>
+
+            <div
+              v-if="showSortMenu"
+              class="absolute right-0 top-full z-50 mt-2 w-52 rounded-xl border border-slate-200 bg-white p-2 shadow-xl">
+              <button
+                type="button"
+                class="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 hover:bg-blue-50 hover:text-[#2879D8]"
+                @click="sortOrder = 'Newest'; showSortMenu = false">
+                Newest First
+              </button>
+
+              <button
+                type="button"
+                class="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 hover:bg-blue-50 hover:text-[#2879D8]"
+                @click="sortOrder = 'Oldest'; showSortMenu = false">
+                Oldest First
+              </button>
+
+              <button
+                type="button"
+                class="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 hover:bg-blue-50 hover:text-[#2879D8]"
+                @click="sortOrder = 'Amount High'; showSortMenu = false">
+                Amount: High → Low
+              </button>
+
+              <button
+                type="button"
+                class="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 hover:bg-blue-50 hover:text-[#2879D8]"
+                @click="sortOrder = 'Amount Low'; showSortMenu = false">
+                Amount: Low → High
+              </button>
+
+              <button
+                type="button"
+                class="block w-full rounded-lg px-3 py-2.5 text-left text-sm text-slate-600 hover:bg-blue-50 hover:text-[#2879D8]"
+                @click="sortOrder = 'Customer A-Z'; showSortMenu = false">
+                Customer: A → Z
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Search & Filters -->
@@ -230,6 +327,7 @@ const orders = [
           </div>
 
           <select
+            v-model="selectedStatus"
             class="h-12 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] focus:bg-white">
             <option>All Status</option>
             <option>Pending</option>
@@ -240,6 +338,7 @@ const orders = [
           </select>
 
           <select
+            v-model="selectedDate"
             class="h-12 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] focus:bg-white">
             <option>All Dates</option>
             <option>Today</option>
@@ -293,7 +392,7 @@ const orders = [
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="order in orders"
+              v-for="order in filteredOrders"
               :key="order.id"
               class="transition hover:bg-[#F8FAFD]">
               <!-- Order -->
@@ -349,43 +448,54 @@ const orders = [
 
               <!-- Status -->
               <td class="px-6 py-5">
-                <span
-                  v-if="order.status === 'Delivered'"
-                  class="inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
-                  Delivered
-                </span>
-
-                <span
-                  v-else-if="order.status === 'Processing'"
-                  class="inline-flex rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-[#2879D8]">
-                  Processing
-                </span>
-
-                <span
-                  v-else-if="order.status === 'Shipped'"
-                  class="inline-flex rounded-full bg-purple-50 px-3 py-1.5 text-xs font-semibold text-purple-600">
-                  Shipped
-                </span>
-
-                <span
-                  v-else-if="order.status === 'Pending'"
-                  class="inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-600">
-                  Pending
-                </span>
-
-                <span
-                  v-else
-                  class="inline-flex rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600">
-                  Cancelled
-                </span>
+                <select
+                  :value="order.status"
+                  class="rounded-full border-0 px-3 py-1.5 text-xs font-semibold outline-none"
+                  :class="{
+                    'bg-emerald-50 text-emerald-600': order.status === 'Delivered',
+                    'bg-blue-50 text-[#2879D8]': order.status === 'Processing',
+                    'bg-purple-50 text-purple-600': order.status === 'Shipped',
+                    'bg-orange-50 text-orange-600': order.status === 'Pending',
+                    'bg-red-50 text-red-600': order.status === 'Cancelled',
+                  }"
+                  @change="
+                    changeStatus(
+                      order.id,
+                      ($event.target as HTMLSelectElement).value as 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled',
+                    )
+                  ">
+                  <option value="Pending">
+                    Pending
+                  </option>
+                  <option value="Processing">
+                    Processing
+                  </option>
+                  <option value="Shipped">
+                    Shipped
+                  </option>
+                  <option value="Delivered">
+                    Delivered
+                  </option>
+                  <option value="Cancelled">
+                    Cancelled
+                  </option>
+                </select>
               </td>
 
               <!-- Action -->
               <td class="px-7 py-5">
-                <div class="flex justify-end">
-                  <button
+                <div class="flex justify-end gap-2">
+                  <NuxtLink
+                    :to="`/orders/${encodeURIComponent(order.id)}`"
                     class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
                     View
+                  </NuxtLink>
+
+                  <button
+                    type="button"
+                    class="rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
+                    @click="removeOrder(order.id)">
+                    Delete
                   </button>
                 </div>
               </td>
