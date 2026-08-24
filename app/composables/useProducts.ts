@@ -48,7 +48,7 @@ const defaultProducts: Product[] = [
 ]
 
 export const useProducts = () => {
-  const products = useState<Product[]>('dashboard-products', () => [])
+  const products = useState<Product[]>('dashboard-products', () => [...defaultProducts])
 
   const loadProducts = () => {
     if (!import.meta.client) {
@@ -59,10 +59,23 @@ export const useProducts = () => {
 
     if (savedProducts) {
       try {
-        products.value = JSON.parse(savedProducts)
+        const parsedProducts = JSON.parse(savedProducts)
+
+        if (Array.isArray(parsedProducts) && parsedProducts.length > 0) {
+          products.value = parsedProducts
+        }
+        else {
+          products.value = [...defaultProducts]
+
+          localStorage.setItem(
+            'dashboard-products',
+            JSON.stringify(products.value)
+          )
+        }
       }
       catch {
         products.value = [...defaultProducts]
+
         localStorage.setItem(
           'dashboard-products',
           JSON.stringify(products.value)

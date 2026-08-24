@@ -1,7 +1,5 @@
 <template>
-  <UApp>
-    <NuxtRouteAnnouncer />
-    <NuxtLoadingIndicator />
+  <UApp :toasts="{ position: 'top-right' }">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

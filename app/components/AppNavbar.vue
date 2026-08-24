@@ -1,6 +1,6 @@
 <template>
   <header
-    class="fixed left-64 right-0 top-0 z-30 h-20 border-b border-slate-200 bg-white px-8">
+    class="fixed left-64 right-0 top-0 z-20 h-20 border-b border-slate-200 bg-white px-8">
     <div class="flex h-full items-center justify-between">
       <!-- Heading -->
       <div>
