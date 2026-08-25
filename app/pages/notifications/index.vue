@@ -755,7 +755,7 @@ const toggleReadStatus = (id: number) => {
       <Transition name="fade">
         <div
           v-if="isDetailsModalOpen && selectedNotification"
-          class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm"
+          class="fixed inset-0 z-100 flex items-center justify-center bg-slate-900/50 px-4 backdrop-blur-sm"
           @click.self="closeDetails">
           <div
             class="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
