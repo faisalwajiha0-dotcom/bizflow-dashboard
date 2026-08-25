@@ -33,6 +33,7 @@ export { requestIdleCallback, cancelIdleCallback } from '#app/compat/idle-callba
 export { setInterval } from '#app/compat/interval';
 export { definePageMeta, PageMeta } from '#app/composables/pages';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
+export { useCustomers, Customer } from '../app/composables/useCustomers';
 export { useOrders, Order } from '../app/composables/useOrders';
 export { useProducts, Product } from '../app/composables/useProducts';
 export { defineLocale, extendLocale } from '../node_modules/@nuxt/ui/dist/runtime/composables/defineLocale';
