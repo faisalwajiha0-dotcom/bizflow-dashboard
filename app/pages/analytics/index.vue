@@ -3,86 +3,252 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const salesData = [
-  { month: 'Jan', value: 42 },
-  { month: 'Feb', value: 58 },
-  { month: 'Mar', value: 48 },
-  { month: 'Apr', value: 72 },
-  { month: 'May', value: 65 },
-  { month: 'Jun', value: 86 },
-  { month: 'Jul', value: 78 },
-  { month: 'Aug', value: 94 }
+const { products, loadProducts } = useProducts()
+
+const {
+  orders,
+  loadOrders
+} = useOrders()
+
+const {
+  customers,
+  loadCustomers
+} = useCustomers()
+
+const selectedPeriod = ref('Last 30 Days')
+
+onMounted(() => {
+  loadProducts()
+  loadOrders()
+  loadCustomers()
+})
+
+/* -----------------------------
+   DATE FILTER
+----------------------------- */
+
+const periodOptions = [
+  'Today',
+  'Last 7 Days',
+  'Last 30 Days',
+  'Last 3 Months'
 ]
 
-const topProducts = [
-  {
-    name: 'Wireless Headphones',
-    category: 'Electronics',
-    sales: 348,
-    revenue: '$44,892',
-    initials: 'WH',
-    bg: 'bg-blue-100',
-    text: 'text-[#2879D8]'
-  },
-  {
-    name: 'Smart Watch',
-    category: 'Electronics',
-    sales: 286,
-    revenue: '$38,214',
-    initials: 'SW',
-    bg: 'bg-purple-100',
-    text: 'text-purple-600'
-  },
-  {
-    name: 'Mechanical Keyboard',
-    category: 'Accessories',
-    sales: 214,
-    revenue: '$16,050',
-    initials: 'MK',
-    bg: 'bg-orange-100',
-    text: 'text-orange-600'
-  },
-  {
-    name: 'Laptop Stand',
-    category: 'Accessories',
-    sales: 176,
-    revenue: '$11,440',
-    initials: 'LS',
-    bg: 'bg-emerald-100',
-    text: 'text-emerald-600'
-  }
-]
+/* -----------------------------
+   REVENUE DATA
+----------------------------- */
 
-const orderStats = [
-  {
-    label: 'Delivered',
-    value: '1,062',
-    percentage: '82.7%',
-    bar: '82%',
-    bg: 'bg-emerald-500'
-  },
-  {
-    label: 'Shipped',
-    value: '126',
-    percentage: '9.8%',
-    bar: '10%',
-    bg: 'bg-purple-500'
-  },
-  {
-    label: 'Processing',
-    value: '48',
-    percentage: '3.7%',
-    bar: '4%',
-    bg: 'bg-[#2879D8]'
-  },
-  {
-    label: 'Pending',
-    value: '48',
-    percentage: '3.8%',
-    bar: '4%',
-    bg: 'bg-orange-400'
+const salesData = computed(() => {
+  if (selectedPeriod.value === 'Today') {
+    return [
+      { month: 'Today', value: 12 }
+    ]
   }
-]
+
+  if (selectedPeriod.value === 'Last 7 Days') {
+    return [
+      { month: 'Mon', value: 32 },
+      { month: 'Tue', value: 45 },
+      { month: 'Wed', value: 38 },
+      { month: 'Thu', value: 58 },
+      { month: 'Fri', value: 64 },
+      { month: 'Sat', value: 72 },
+      { month: 'Sun', value: 81 }
+    ]
+  }
+
+  if (selectedPeriod.value === 'Last 3 Months') {
+    return [
+      { month: 'Jun', value: 86 },
+      { month: 'Jul', value: 94 },
+      { month: 'Aug', value: 108 }
+    ]
+  }
+
+  return [
+    { month: 'Jan', value: 42 },
+    { month: 'Feb', value: 58 },
+    { month: 'Mar', value: 48 },
+    { month: 'Apr', value: 72 },
+    { month: 'May', value: 65 },
+    { month: 'Jun', value: 86 },
+    { month: 'Jul', value: 78 },
+    { month: 'Aug', value: 94 }
+  ]
+})
+
+/* -----------------------------
+   TOP PRODUCTS
+----------------------------- */
+
+const topProducts = computed(() => {
+  const productList = [...products.value]
+
+  return productList
+    .sort((a, b) => b.stock - a.stock)
+    .slice(0, 4)
+    .map((product, index) => ({
+      name: product.name,
+      category: product.category,
+      sales: product.stock,
+      revenue: `$${(product.price * product.stock).toLocaleString()}`,
+      initials: product.name
+        .split(' ')
+        .map(word => word[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase(),
+      bg: [
+        'bg-blue-100',
+        'bg-purple-100',
+        'bg-orange-100',
+        'bg-emerald-100'
+      ][index] || 'bg-blue-100',
+      text: [
+        'text-[#2879D8]',
+        'text-purple-600',
+        'text-orange-600',
+        'text-emerald-600'
+      ][index] || 'text-[#2879D8]'
+    }))
+})
+
+/* -----------------------------
+   ORDER STATISTICS
+----------------------------- */
+
+const totalOrders = computed(() => {
+  return orders.value.length
+})
+
+const deliveredOrders = computed(() =>
+  orders.value.filter(order => order.status === 'Delivered').length
+)
+
+const shippedOrders = computed(() =>
+  orders.value.filter(order => order.status === 'Shipped').length
+)
+
+const processingOrders = computed(() =>
+  orders.value.filter(order => order.status === 'Processing').length
+)
+
+const pendingOrders = computed(() =>
+  orders.value.filter(order => order.status === 'Pending').length
+)
+
+const orderStats = computed(() => {
+  const total = totalOrders.value || 1
+
+  const createStat = (
+    label: string,
+    value: number,
+    bg: string
+  ) => {
+    const percentage = (value / total) * 100
+
+    return {
+      label,
+      value: value.toLocaleString(),
+      percentage: `${percentage.toFixed(1)}%`,
+      bar: `${percentage}%`,
+      bg
+    }
+  }
+
+  return [
+    createStat(
+      'Delivered',
+      deliveredOrders.value,
+      'bg-emerald-500'
+    ),
+    createStat(
+      'Shipped',
+      shippedOrders.value,
+      'bg-purple-500'
+    ),
+    createStat(
+      'Processing',
+      processingOrders.value,
+      'bg-[#2879D8]'
+    ),
+    createStat(
+      'Pending',
+      pendingOrders.value,
+      'bg-orange-400'
+    )
+  ]
+})
+
+/* -----------------------------
+   MAIN ANALYTICS
+----------------------------- */
+
+const totalRevenue = computed(() => {
+  return products.value.reduce(
+    (total, product) =>
+      total + product.price * product.stock,
+    0
+  )
+})
+
+const totalSales = computed(() => {
+  return products.value.reduce(
+    (total, product) =>
+      total + product.stock,
+    0
+  )
+})
+
+const averageOrder = computed(() => {
+  if (!totalOrders.value) {
+    return 0
+  }
+
+  return totalRevenue.value / totalOrders.value
+})
+
+const newCustomers = computed(() => {
+  return customers.value.length
+})
+
+/* -----------------------------
+   EXPORT REPORT
+----------------------------- */
+
+const exportReport = () => {
+  const report = [
+    'SMART SHOP ANALYTICS REPORT',
+    '============================',
+    '',
+    `Period: ${selectedPeriod.value}`,
+    `Total Revenue: $${totalRevenue.value.toLocaleString()}`,
+    `Total Sales: ${totalSales.value}`,
+    `Average Order: $${averageOrder.value.toFixed(2)}`,
+    `Total Orders: ${totalOrders.value}`,
+    '',
+    'ORDER STATISTICS',
+    '----------------',
+    ...orderStats.value.map(
+      item =>
+        `${item.label}: ${item.value} (${item.percentage})`
+    )
+  ].join('\n')
+
+  const blob = new Blob(
+    [report],
+    { type: 'text/plain' }
+  )
+
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'smart-shop-analytics.txt'
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
 </script>
 
 <template>
@@ -107,14 +273,20 @@ const orderStats = [
 
       <!-- Date Filter -->
       <div class="flex items-center gap-3">
-        <button
-          class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm transition hover:border-[#2879D8] hover:text-[#2879D8]">
-          Last 30 Days
-          <span class="ml-2 text-slate-400">⌄</span>
-        </button>
+        <select
+          v-model="selectedPeriod"
+          class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 shadow-sm outline-none transition focus:border-[#2879D8] focus:text-[#2879D8]">
+          <option
+            v-for="option in periodOptions"
+            :key="option"
+            :value="option">
+            {{ option }}
+          </option>
+        </select>
 
         <button
-          class="rounded-xl bg-[#2879D8] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition hover:bg-[#174A78]">
+          class="rounded-xl bg-[#2879D8] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition hover:bg-[#174A78]"
+          @click="exportReport">
           Export Report
         </button>
       </div>
@@ -132,7 +304,7 @@ const orderStats = [
             </p>
 
             <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              $128,450
+              ${{ totalRevenue.toLocaleString() }}
             </h2>
           </div>
 
@@ -163,7 +335,7 @@ const orderStats = [
             </p>
 
             <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              3,842
+              {{ totalSales.toLocaleString() }}
             </h2>
           </div>
 
@@ -194,7 +366,7 @@ const orderStats = [
             </p>
 
             <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              $86.40
+              ${{ averageOrder.toFixed(2) }}
             </h2>
           </div>
 
@@ -225,7 +397,7 @@ const orderStats = [
             </p>
 
             <h2 class="mt-3 text-3xl font-bold text-[#173B63]">
-              486
+              {{ newCustomers.toLocaleString() }}
             </h2>
           </div>
 
@@ -356,7 +528,7 @@ const orderStats = [
           </p>
 
           <p class="mt-1 text-2xl font-bold text-[#173B63]">
-            1,284
+            {{ totalOrders.toLocaleString() }}
           </p>
         </div>
       </div>
