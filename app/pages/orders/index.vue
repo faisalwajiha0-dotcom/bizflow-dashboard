@@ -6,6 +6,7 @@ const selectedStatus = ref('All Status')
 const selectedDate = ref('All Dates')
 const sortOrder = ref('Newest')
 const showSortMenu = ref(false)
+const searchQuery = ref('')
 const {
   orders,
   loadOrders,
@@ -20,6 +21,17 @@ onMounted(() => {
 const filteredOrders = computed(() => {
   let result = [...orders.value]
 
+  // 🔎 Search Order
+  if (searchQuery.value.trim() !== '') {
+    const query = searchQuery.value.trim().toLowerCase()
+
+    result = result.filter(order =>
+      order.customer.toLowerCase().includes(query)
+      || order.email.toLowerCase().includes(query)
+      || order.product.toLowerCase().includes(query)
+      || order.id.toLowerCase().includes(query)
+    )
+  }
   // Status filter
   if (selectedStatus.value !== 'All Status') {
     result = result.filter(
@@ -321,6 +333,7 @@ const removeOrder = (id: string) => {
             </span>
 
             <input
+              v-model="searchQuery"
               type="text"
               placeholder="Search by order ID or customer..."
               class="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400">

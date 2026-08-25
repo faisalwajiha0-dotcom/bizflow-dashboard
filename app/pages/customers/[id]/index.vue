@@ -161,4 +161,3 @@ const goBack = () => {
     </div>
   </div>
 </template>
-```

@@ -3,58 +3,73 @@ definePageMeta({
   layout: 'dashboard'
 })
 
-const customers = [
-  {
-    name: 'Ayesha Khan',
-    email: 'ayesha.khan@email.com',
-    phone: '+92 300 1234567',
-    orders: 24,
-    spent: '$2,480',
-    status: 'Active',
-    initials: 'AK',
-    avatar: 'bg-blue-100 text-[#2879D8]'
-  },
-  {
-    name: 'Hassan Ali',
-    email: 'hassan.ali@email.com',
-    phone: '+92 301 7654321',
-    orders: 18,
-    spent: '$1,920',
-    status: 'Active',
-    initials: 'HA',
-    avatar: 'bg-purple-100 text-purple-600'
-  },
-  {
-    name: 'Sara Ahmed',
-    email: 'sara.ahmed@email.com',
-    phone: '+92 302 9876543',
-    orders: 12,
-    spent: '$1,340',
-    status: 'Active',
-    initials: 'SA',
-    avatar: 'bg-emerald-100 text-emerald-600'
-  },
-  {
-    name: 'Usman Tariq',
-    email: 'usman.tariq@email.com',
-    phone: '+92 303 4567890',
-    orders: 7,
-    spent: '$780',
-    status: 'Inactive',
-    initials: 'UT',
-    avatar: 'bg-orange-100 text-orange-600'
-  },
-  {
-    name: 'Maham Fatima',
-    email: 'maham.fatima@email.com',
-    phone: '+92 304 2345678',
-    orders: 31,
-    spent: '$3,760',
-    status: 'VIP',
-    initials: 'MF',
-    avatar: 'bg-pink-100 text-pink-600'
+const {
+  customers,
+  loadCustomers
+} = useCustomers()
+
+const searchQuery = ref('')
+const selectedStatus = ref('All Status')
+const sortOption = ref('Newest')
+
+onMounted(() => {
+  loadCustomers()
+})
+
+const filteredCustomers = computed(() => {
+  let result = [...customers.value]
+
+  // 🔎 Search Customer
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase().trim()
+
+    result = result.filter(customer =>
+      customer.name.toLowerCase().includes(query)
+      || customer.email.toLowerCase().includes(query)
+      || customer.phone.toLowerCase().includes(query)
+    )
   }
-]
+
+  // 👤 Status Filter
+  if (selectedStatus.value !== 'All Status') {
+    result = result.filter(
+      customer => customer.status === selectedStatus.value
+    )
+  }
+
+  // ↕️ Sort Customers
+  if (sortOption.value === 'A-Z') {
+    result.sort((a, b) =>
+      a.name.localeCompare(b.name)
+    )
+  }
+
+  if (sortOption.value === 'Z-A') {
+    result.sort((a, b) =>
+      b.name.localeCompare(a.name)
+    )
+  }
+
+  if (sortOption.value === 'Highest Spent') {
+    result.sort((a, b) =>
+      b.totalSpent - a.totalSpent
+    )
+  }
+
+  if (sortOption.value === 'Lowest Spent') {
+    result.sort((a, b) =>
+      a.totalSpent - b.totalSpent
+    )
+  }
+
+  if (sortOption.value === 'Newest') {
+    result.sort((a, b) =>
+      b.id - a.id
+    )
+  }
+
+  return result
+})
 </script>
 
 <template>
@@ -76,11 +91,12 @@ const customers = [
         </p>
       </div>
 
-      <button
+      <NuxtLink
+        to="/customers/create"
         class="inline-flex w-fit items-center gap-2 rounded-xl bg-[#2879D8] px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-blue-200/50 transition duration-200 hover:-translate-y-0.5 hover:bg-[#174A78]">
         <span class="text-lg">+</span>
         Add Customer
-      </button>
+      </NuxtLink>
     </div>
 
     <!-- Statistics -->
@@ -203,11 +219,29 @@ const customers = [
             </p>
           </div>
 
-          <button
-            class="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:border-[#2879D8] hover:text-[#2879D8]">
-            <span>⇅</span>
-            Sort Customers
-          </button>
+          <select
+            v-model="sortOption"
+            class="flex w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 outline-none transition focus:border-[#2879D8] focus:text-[#2879D8]">
+            <option value="Newest">
+              Newest
+            </option>
+
+            <option value="A-Z">
+              A-Z
+            </option>
+
+            <option value="Z-A">
+              Z-A
+            </option>
+
+            <option value="Highest Spent">
+              Highest Spent
+            </option>
+
+            <option value="Lowest Spent">
+              Lowest Spent
+            </option>
+          </select>
         </div>
 
         <!-- Search & Filter -->
@@ -219,17 +253,26 @@ const customers = [
             </span>
 
             <input
+              v-model="searchQuery"
               type="text"
               placeholder="Search by name, email or phone..."
               class="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400">
           </div>
 
           <select
+            v-model="selectedStatus"
             class="h-12 rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] focus:bg-white">
-            <option>All Customers</option>
-            <option>Active</option>
-            <option>Inactive</option>
-            <option>VIP</option>
+            <option value="All Status">
+              All Status
+            </option>
+
+            <option value="Active">
+              Active
+            </option>
+
+            <option value="Inactive">
+              Inactive
+            </option>
           </select>
         </div>
       </div>
@@ -273,17 +316,18 @@ const customers = [
 
           <tbody class="divide-y divide-slate-100">
             <tr
-              v-for="customer in customers"
+              v-for="customer in filteredCustomers"
               :key="customer.email"
               class="transition hover:bg-[#F8FAFD]">
               <!-- Customer -->
               <td class="px-7 py-5">
                 <div class="flex items-center gap-4">
                   <div
-                    :class="[
-                      'flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold',
-                      customer.avatar,
-                    ]">
+                    :class="
+                      customer.status === 'Active'
+                        ? 'bg-blue-100 text-[#2879D8]'
+                        : 'bg-slate-100 text-slate-500'
+                    ">
                     {{ customer.initials }}
                   </div>
 
@@ -316,7 +360,7 @@ const customers = [
               <!-- Spent -->
               <td class="px-6 py-5">
                 <span class="text-sm font-semibold text-[#173B63]">
-                  {{ customer.spent }}
+                  {{ customer.totalSpent }}
                 </span>
               </td>
 
@@ -329,12 +373,6 @@ const customers = [
                 </span>
 
                 <span
-                  v-else-if="customer.status === 'VIP'"
-                  class="inline-flex rounded-full bg-orange-50 px-3 py-1.5 text-xs font-semibold text-orange-600">
-                  VIP
-                </span>
-
-                <span
                   v-else
                   class="inline-flex rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-500">
                   Inactive
@@ -344,15 +382,17 @@ const customers = [
               <!-- Actions -->
               <td class="px-7 py-5">
                 <div class="flex justify-end gap-2">
-                  <button
+                  <NuxtLink
+                    :to="`/customers/${customer.id}`"
                     class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
                     View
-                  </button>
+                  </NuxtLink>
 
-                  <button
+                  <NuxtLink
+                    :to="`/customers/${customer.id}/edit`"
                     class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
                     Edit
-                  </button>
+                  </NuxtLink>
                 </div>
               </td>
             </tr>

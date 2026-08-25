@@ -111,16 +111,13 @@ export const useCustomers = () => {
     )
   }
 
-  const addCustomer = (
-    customer: Omit<Customer, 'id'>
-  ) => {
+  const addCustomer = (customer: Omit<Customer, 'id'>) => {
     const newCustomer: Customer = {
       id: Date.now(),
       ...customer
     }
 
     customers.value.unshift(newCustomer)
-
     saveCustomers()
 
     return newCustomer
@@ -146,14 +143,6 @@ export const useCustomers = () => {
     saveCustomers()
 
     return true
-  }
-
-  const deleteCustomer = (id: number) => {
-    customers.value = customers.value.filter(
-      customer => customer.id !== id
-    )
-
-    saveCustomers()
   }
 
   const getCustomer = (id: number) => {
@@ -191,7 +180,6 @@ export const useCustomers = () => {
     saveCustomers,
     addCustomer,
     updateCustomer,
-    deleteCustomer,
     getCustomer,
     totalCustomers,
     activeCustomers,
