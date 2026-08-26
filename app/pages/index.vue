@@ -1,8 +1,57 @@
+```vue
 <script setup lang="ts">
 definePageMeta({
   layout: 'dashboard'
 })
+
+const salesPeriod = ref('Last 12 months')
+
+const salesData = {
+  'Last 12 months': {
+    months: [
+      'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr',
+      'May', 'Jun', 'Jul', 'Aug'
+    ],
+    values: [38, 52, 64, 43, 75, 61, 70, 88, 67, 92, 78, 86]
+  },
+
+  'Last 6 months': {
+    months: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+    values: [70, 88, 67, 92, 78, 86]
+  },
+
+  'This year': {
+    months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'],
+    values: [75, 61, 70, 88, 67, 92, 78, 86]
+  }
+}
+
+const currentSalesData = computed(() => {
+  return salesData[salesPeriod.value as keyof typeof salesData]
+})
+
+const performance = reactive({
+  salesTarget: 82,
+  customerGrowth: 68,
+  orderFulfillment: 90
+})
+
+const overallPerformance = computed(() => {
+  return Math.round(
+    (
+      performance.salesTarget
+      + performance.customerGrowth
+      + performance.orderFulfillment
+    ) / 3
+  )
+})
+
+const performanceDegrees = computed(() => {
+  return (overallPerformance.value / 100) * 360
+})
 </script>
+```
 
 <template>
   <div class="space-y-7">
@@ -162,8 +211,10 @@ definePageMeta({
             </p>
           </div>
 
+          <!-- Period Filter -->
           <select
-            class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 outline-none">
+            v-model="salesPeriod"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 outline-none focus:border-[#2879D8]">
             <option>Last 12 months</option>
             <option>Last 6 months</option>
             <option>This year</option>
@@ -172,44 +223,34 @@ definePageMeta({
 
         <!-- Chart -->
         <div class="mt-8 h-72">
-          <div class="flex h-full items-end gap-4 border-b border-slate-200 px-2">
+          <div
+            class="flex h-full items-end gap-4 border-b border-slate-200 px-2">
             <div
-              v-for="(height, index) in [
-                38, 52, 64, 43, 75, 61,
-                70, 88, 67, 92, 78, 86,
-              ]"
-              :key="index"
+              v-for="(height, index) in currentSalesData.values"
+              :key="`${salesPeriod}-${index}`"
               class="group flex h-full flex-1 flex-col justify-end">
               <!-- Bar -->
               <div class="flex h-full items-end justify-center">
                 <div
-                  class="w-full max-w-10 rounded-t-lg bg-[#4D93E8] transition-all duration-300 group-hover:bg-[#174A78]"
-                  :style="{ height: `${height}%` }" />
+                  class="relative w-full max-w-10 rounded-t-lg bg-[#4D93E8] transition-all duration-300 group-hover:bg-[#174A78]"
+                  :style="{ height: `${height}%` }">
+                  <!-- Revenue tooltip -->
+                  <div
+                    class="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#173B63] px-2.5 py-1 text-xs font-semibold text-white opacity-0 transition group-hover:opacity-100">
+                    ${{ height * 100 }}
+                  </div>
+                </div>
               </div>
 
               <!-- Month -->
               <div class="pt-3 text-center text-xs text-slate-400">
-                {{
-                  [
-                    'Sep',
-                    'Oct',
-                    'Nov',
-                    'Dec',
-                    'Jan',
-                    'Feb',
-                    'Mar',
-                    'Apr',
-                    'May',
-                    'Jun',
-                    'Jul',
-                    'Aug',
-                  ][index]
-                }}
+                {{ currentSalesData.months[index] }}
               </div>
             </div>
           </div>
         </div>
       </div>
+
       <!-- Performance -->
       <div
         class="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
@@ -221,14 +262,20 @@ definePageMeta({
           Overall business health
         </p>
 
+        <!-- Circular Performance -->
         <div class="mt-8 flex justify-center">
           <div
-            class="flex h-48 w-48 items-center justify-center rounded-full"
-            style="background: conic-gradient(#2879D8 0deg 270deg, #E6EEF7 270deg 360deg)">
+            class="flex h-48 w-48 items-center justify-center rounded-full transition-all duration-500"
+            :style="{
+              background: `conic-gradient(
+          #2879D8 0deg ${performanceDegrees}deg,
+          #E6EEF7 ${performanceDegrees}deg 360deg
+        )`,
+            }">
             <div
               class="flex h-32 w-32 flex-col items-center justify-center rounded-full bg-white">
               <span class="text-3xl font-bold text-[#173B63]">
-                75%
+                {{ overallPerformance }}%
               </span>
 
               <span class="text-xs text-slate-400">
@@ -238,20 +285,57 @@ definePageMeta({
           </div>
         </div>
 
+        <!-- Performance Details -->
         <div class="mt-7 space-y-4">
-          <div class="flex justify-between text-sm">
-            <span class="text-slate-500">Sales Target</span>
-            <strong class="text-[#173B63]">82%</strong>
+          <!-- Sales Target -->
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">
+              Sales Target
+            </span>
+
+            <strong class="text-[#173B63]">
+              {{ performance.salesTarget }}%
+            </strong>
           </div>
 
-          <div class="flex justify-between text-sm">
-            <span class="text-slate-500">Customer Growth</span>
-            <strong class="text-[#173B63]">68%</strong>
+          <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              class="h-full rounded-full bg-[#2879D8] transition-all duration-500"
+              :style="{ width: `${performance.salesTarget}%` }" />
           </div>
 
-          <div class="flex justify-between text-sm">
-            <span class="text-slate-500">Order Fulfillment</span>
-            <strong class="text-[#173B63]">90%</strong>
+          <!-- Customer Growth -->
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">
+              Customer Growth
+            </span>
+
+            <strong class="text-[#173B63]">
+              {{ performance.customerGrowth }}%
+            </strong>
+          </div>
+
+          <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              class="h-full rounded-full bg-[#4D93E8] transition-all duration-500"
+              :style="{ width: `${performance.customerGrowth}%` }" />
+          </div>
+
+          <!-- Order Fulfillment -->
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-slate-500">
+              Order Fulfillment
+            </span>
+
+            <strong class="text-[#173B63]">
+              {{ performance.orderFulfillment }}%
+            </strong>
+          </div>
+
+          <div class="h-2 overflow-hidden rounded-full bg-slate-100">
+            <div
+              class="h-full rounded-full bg-emerald-500 transition-all duration-500"
+              :style="{ width: `${performance.orderFulfillment}%` }" />
           </div>
         </div>
       </div>
