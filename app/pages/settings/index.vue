@@ -1,23 +1,109 @@
+```vue
 <script setup lang="ts">
 definePageMeta({
   layout: 'dashboard'
 })
 
-const emailNotifications = ref(true)
-const orderNotifications = ref(true)
-const lowStockAlerts = ref(true)
-const marketingEmails = ref(false)
-const darkMode = ref(false)
+interface Settings {
+  language: string
+  timezone: string
+  darkMode: boolean
+  emailNotifications: boolean
+  orderNotifications: boolean
+  lowStockAlerts: boolean
+  marketingEmails: boolean
+}
+
+const defaultSettings: Settings = {
+  language: 'English',
+  timezone: 'Pakistan Standard Time',
+  darkMode: false,
+  emailNotifications: true,
+  orderNotifications: true,
+  lowStockAlerts: true,
+  marketingEmails: false
+}
+
+const settings = reactive<Settings>({
+  ...defaultSettings
+})
 
 const saved = ref(false)
+const showDeactivateModal = ref(false)
+const deactivated = ref(false)
 
 const saveSettings = () => {
+  if (import.meta.client) {
+    localStorage.setItem(
+      'dashboard-settings',
+      JSON.stringify(settings)
+    )
+  }
+
   saved.value = true
 
   setTimeout(() => {
     saved.value = false
   }, 2500)
 }
+
+const loadSettings = () => {
+  if (!import.meta.client) {
+    return
+  }
+
+  const savedSettings = localStorage.getItem('dashboard-settings')
+
+  if (!savedSettings) {
+    return
+  }
+
+  try {
+    Object.assign(settings, JSON.parse(savedSettings))
+  }
+  catch {
+    Object.assign(settings, defaultSettings)
+  }
+}
+
+const toggleSetting = (
+  setting:
+    | 'darkMode'
+    | 'emailNotifications'
+    | 'orderNotifications'
+    | 'lowStockAlerts'
+    | 'marketingEmails'
+) => {
+  settings[setting] = !settings[setting]
+}
+
+const deactivateAccount = () => {
+  deactivated.value = true
+  showDeactivateModal.value = false
+
+  if (import.meta.client) {
+    localStorage.setItem(
+      'account-status',
+      'deactivated'
+    )
+  }
+}
+
+const cancelDeactivate = () => {
+  showDeactivateModal.value = false
+}
+
+onMounted(() => {
+  loadSettings()
+
+  if (import.meta.client) {
+    const accountStatus = localStorage.getItem('account-status')
+
+    if (accountStatus === 'deactivated') {
+      deactivated.value = true
+    }
+  }
+})
 </script>
 
 <template>
@@ -68,9 +154,15 @@ const saveSettings = () => {
               </div>
 
               <select
+                v-model="settings.language"
                 class="w-full rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] sm:w-44">
-                <option>English</option>
-                <option>Urdu</option>
+                <option value="English">
+                  English
+                </option>
+
+                <option value="Urdu">
+                  Urdu
+                </option>
               </select>
             </div>
 
@@ -87,10 +179,19 @@ const saveSettings = () => {
               </div>
 
               <select
+                v-model="settings.timezone"
                 class="w-full rounded-xl border border-slate-200 bg-[#F8FAFD] px-4 py-2.5 text-sm text-slate-600 outline-none transition focus:border-[#2879D8] sm:w-52">
-                <option>Pakistan Standard Time</option>
-                <option>UTC</option>
-                <option>Eastern Time</option>
+                <option value="Pakistan Standard Time">
+                  Pakistan Standard Time
+                </option>
+
+                <option value="UTC">
+                  UTC
+                </option>
+
+                <option value="Eastern Time">
+                  Eastern Time
+                </option>
               </select>
             </div>
 
@@ -108,12 +209,13 @@ const saveSettings = () => {
 
               <button
                 type="button"
+                :aria-pressed="settings.darkMode"
                 class="relative h-6 w-11 shrink-0 rounded-full transition"
-                :class="darkMode ? 'bg-[#2879D8]' : 'bg-slate-200'"
-                @click="darkMode = !darkMode">
+                :class="settings.darkMode ? 'bg-[#2879D8]' : 'bg-slate-200'"
+                @click="toggleSetting('darkMode')">
                 <span
                   class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition"
-                  :class="darkMode ? 'left-6' : 'left-1'" />
+                  :class="settings.darkMode ? 'left-6' : 'left-1'" />
               </button>
             </div>
           </div>
@@ -146,12 +248,13 @@ const saveSettings = () => {
 
               <button
                 type="button"
+                :aria-pressed="settings.emailNotifications"
                 class="relative h-6 w-11 shrink-0 rounded-full transition"
-                :class="emailNotifications ? 'bg-[#2879D8]' : 'bg-slate-200'"
-                @click="emailNotifications = !emailNotifications">
+                :class="settings.emailNotifications ? 'bg-[#2879D8]' : 'bg-slate-200'"
+                @click="toggleSetting('emailNotifications')">
                 <span
                   class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition"
-                  :class="emailNotifications ? 'left-6' : 'left-1'" />
+                  :class="settings.emailNotifications ? 'left-6' : 'left-1'" />
               </button>
             </div>
 
@@ -169,12 +272,13 @@ const saveSettings = () => {
 
               <button
                 type="button"
+                :aria-pressed="settings.orderNotifications"
                 class="relative h-6 w-11 shrink-0 rounded-full transition"
-                :class="orderNotifications ? 'bg-[#2879D8]' : 'bg-slate-200'"
-                @click="orderNotifications = !orderNotifications">
+                :class="settings.orderNotifications ? 'bg-[#2879D8]' : 'bg-slate-200'"
+                @click="toggleSetting('orderNotifications')">
                 <span
                   class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition"
-                  :class="orderNotifications ? 'left-6' : 'left-1'" />
+                  :class="settings.orderNotifications ? 'left-6' : 'left-1'" />
               </button>
             </div>
 
@@ -192,16 +296,17 @@ const saveSettings = () => {
 
               <button
                 type="button"
+                :aria-pressed="settings.lowStockAlerts"
                 class="relative h-6 w-11 shrink-0 rounded-full transition"
-                :class="lowStockAlerts ? 'bg-[#2879D8]' : 'bg-slate-200'"
-                @click="lowStockAlerts = !lowStockAlerts">
+                :class="settings.lowStockAlerts ? 'bg-[#2879D8]' : 'bg-slate-200'"
+                @click="toggleSetting('lowStockAlerts')">
                 <span
                   class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition"
-                  :class="lowStockAlerts ? 'left-6' : 'left-1'" />
+                  :class="settings.lowStockAlerts ? 'left-6' : 'left-1'" />
               </button>
             </div>
 
-            <!-- Marketing -->
+            <!-- Product Updates -->
             <div class="flex items-center justify-between gap-4 px-6 py-5 sm:px-7">
               <div>
                 <p class="text-sm font-semibold text-[#173B63]">
@@ -215,12 +320,13 @@ const saveSettings = () => {
 
               <button
                 type="button"
+                :aria-pressed="settings.marketingEmails"
                 class="relative h-6 w-11 shrink-0 rounded-full transition"
-                :class="marketingEmails ? 'bg-[#2879D8]' : 'bg-slate-200'"
-                @click="marketingEmails = !marketingEmails">
+                :class="settings.marketingEmails ? 'bg-[#2879D8]' : 'bg-slate-200'"
+                @click="toggleSetting('marketingEmails')">
                 <span
                   class="absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition"
-                  :class="marketingEmails ? 'left-6' : 'left-1'" />
+                  :class="settings.marketingEmails ? 'left-6' : 'left-1'" />
               </button>
             </div>
           </div>
@@ -283,8 +389,16 @@ const saveSettings = () => {
                 Account Status
               </p>
 
-              <span class="mt-2 inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
+              <span
+                v-if="!deactivated"
+                class="mt-2 inline-flex rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-600">
                 Active
+              </span>
+
+              <span
+                v-else
+                class="mt-2 inline-flex rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600">
+                Deactivated
               </span>
             </div>
           </div>
@@ -323,12 +437,64 @@ const saveSettings = () => {
           </p>
 
           <button
+            v-if="!deactivated"
             type="button"
-            class="mt-5 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50">
+            class="mt-5 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-500 transition hover:bg-red-50"
+            @click="showDeactivateModal = true">
             Deactivate Account
+          </button>
+
+          <button
+            v-else
+            type="button"
+            disabled
+            class="mt-5 cursor-not-allowed rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-400">
+            Account Deactivated
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deactivate Confirmation Modal -->
+    <div
+      v-if="showDeactivateModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm"
+      @click.self="cancelDeactivate">
+      <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="flex items-start gap-4">
+          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-50 text-xl">
+            ⚠️
+          </div>
+
+          <div>
+            <h2 class="text-xl font-bold text-[#173B63]">
+              Deactivate Account?
+            </h2>
+
+            <p class="mt-2 text-sm leading-6 text-slate-500">
+              Are you sure you want to deactivate your account?
+              This will mark your account as deactivated.
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            @click="cancelDeactivate">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-600"
+            @click="deactivateAccount">
+            Yes, Deactivate
           </button>
         </div>
       </div>
     </div>
   </div>
 </template>
+```
