@@ -38,8 +38,6 @@ const submitProduct = () => {
     return
   }
 
-  console.log('SUBMIT WORKING')
-
   const newProduct = addProduct({
     name: form.name.trim(),
     sku: form.sku.trim(),
@@ -49,15 +47,17 @@ const submitProduct = () => {
     icon: form.icon || '📦'
   })
 
+  // Success Toast
   toast.add({
     title: 'Product Added Successfully',
     description: `${newProduct.name} has been added to your products.`,
     color: 'success'
   })
 
-  console.log('TOAST CALLED')
-
-  router.push('/products')
+  // Thori dair baad Products page par jao
+  setTimeout(() => {
+    router.push('/products')
+  }, 500)
 }
 </script>
 

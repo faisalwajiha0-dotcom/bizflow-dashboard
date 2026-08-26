@@ -79,13 +79,18 @@ const submitEdit = () => {
     errorMessage.value = 'Product could not be found.'
     return
   }
+
+  // Success Toast
   toast.add({
-    title: 'Product Updated',
-    description: `${form.name} has been updated successfully.`,
+    title: 'Product Updated Successfully',
+    description: `${form.name.trim()} has been updated successfully.`,
     color: 'success'
   })
 
-  router.push('/products')
+  // Toast show hone ke baad products page par redirect
+  setTimeout(() => {
+    router.push('/products')
+  }, 500)
 }
 </script>
 
