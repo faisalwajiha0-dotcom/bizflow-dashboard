@@ -71,7 +71,7 @@ const performanceDegrees = computed(() => {
         </p>
 
         <h1 class="text-4xl font-bold tracking-tight">
-          Good evening, Wajiha 👋
+          Hi there 👋
         </h1>
 
         <p class="mt-4 max-w-2xl text-base leading-7 text-blue-100">
