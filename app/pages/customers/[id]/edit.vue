@@ -5,8 +5,6 @@ definePageMeta({
 })
 
 const route = useRoute()
-const router = useRouter()
-const toast = useToast()
 
 const {
   customers,
@@ -29,6 +27,7 @@ const form = reactive({
 })
 
 const errorMessage = ref('')
+const successMessage = ref('')
 
 onMounted(() => {
   loadCustomers()
@@ -90,13 +89,7 @@ const saveChanges = () => {
     return
   }
 
-  toast.add({
-    title: 'Customer Updated Successfully',
-    description: `${form.name} has been updated.`,
-    color: 'success'
-  })
-
-  router.push(`/customers/${customerId}`)
+  successMessage.value = 'Customer updated successfully!'
 }
 </script>
 
@@ -118,6 +111,11 @@ const saveChanges = () => {
     </div>
 
     <div class="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <div
+        v-if="successMessage"
+        class="mb-6 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-600">
+        {{ successMessage }}
+      </div>
       <form
         class="p-6 sm:p-8"
         @submit.prevent="saveChanges">
