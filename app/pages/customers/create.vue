@@ -63,7 +63,10 @@ const submitCustomer = () => {
   })
 
   successMessage.value = `${newCustomer.name} has been added successfully!`
-
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
   setTimeout(() => {
     router.push('/customers')
   }, 1500)

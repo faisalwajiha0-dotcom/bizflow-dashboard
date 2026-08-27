@@ -145,6 +145,22 @@ export const useCustomers = () => {
     return true
   }
 
+  const deleteCustomer = (id: number) => {
+    const index = customers.value.findIndex(
+      customer => customer.id === id
+    )
+
+    if (index === -1) {
+      return false
+    }
+
+    customers.value.splice(index, 1)
+
+    saveCustomers()
+
+    return true
+  }
+
   const getCustomer = (id: number) => {
     return customers.value.find(
       customer => customer.id === id
@@ -180,6 +196,7 @@ export const useCustomers = () => {
     saveCustomers,
     addCustomer,
     updateCustomer,
+    deleteCustomer,
     getCustomer,
     totalCustomers,
     activeCustomers,

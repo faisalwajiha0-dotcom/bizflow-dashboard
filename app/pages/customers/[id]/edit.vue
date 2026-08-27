@@ -5,6 +5,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 
 const {
   customers,
@@ -90,10 +91,25 @@ const saveChanges = () => {
   }
 
   successMessage.value = 'Customer updated successfully!'
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+
+  setTimeout(() => {
+    router.push(`/customers/${customerId}`)
+  }, 1500)
 }
 </script>
 
 <template>
+  <NuxtLink
+    to="/customers"
+    class="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#2879D8] transition hover:text-[#174A78]">
+    <span class="text-lg">←</span>
+    Back to Customers
+  </NuxtLink>
   <div class="min-h-full bg-[#F5F8FC] px-4 py-6 sm:px-8 lg:px-10">
     <div class="mb-8">
       <div class="mb-3 flex items-center gap-2 text-sm font-medium text-[#2879D8]">

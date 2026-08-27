@@ -5,12 +5,22 @@ definePageMeta({
 
 const {
   customers,
-  loadCustomers
+  loadCustomers,
+  deleteCustomer
 } = useCustomers()
 
 const searchQuery = ref('')
 const selectedStatus = ref('All Status')
 const sortOption = ref('Newest')
+
+const successMessage = ref('')
+
+const showDeleteModal = ref(false)
+
+const customerToDelete = ref<{
+  id: number
+  name: string
+} | null>(null)
 
 onMounted(() => {
   loadCustomers()
@@ -19,7 +29,7 @@ onMounted(() => {
 const filteredCustomers = computed(() => {
   let result = [...customers.value]
 
-  // 🔎 Search Customer
+  // Search
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase().trim()
 
@@ -30,14 +40,14 @@ const filteredCustomers = computed(() => {
     )
   }
 
-  // 👤 Status Filter
+  // Status Filter
   if (selectedStatus.value !== 'All Status') {
     result = result.filter(
       customer => customer.status === selectedStatus.value
     )
   }
 
-  // ↕️ Sort Customers
+  // Sorting
   if (sortOption.value === 'A-Z') {
     result.sort((a, b) =>
       a.name.localeCompare(b.name)
@@ -70,10 +80,52 @@ const filteredCustomers = computed(() => {
 
   return result
 })
+
+const handleDelete = (id: number, name: string) => {
+  customerToDelete.value = {
+    id,
+    name
+  }
+
+  showDeleteModal.value = true
+}
+
+const confirmDelete = () => {
+  if (!customerToDelete.value) {
+    return
+  }
+
+  const { id, name } = customerToDelete.value
+
+  const success = deleteCustomer(id)
+
+  if (!success) {
+    return
+  }
+
+  showDeleteModal.value = false
+  customerToDelete.value = null
+
+  successMessage.value = `${name} deleted successfully!`
+
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3000)
+}
 </script>
 
 <template>
   <div class="min-h-full bg-[#F5F8FC] px-4 py-4 sm:px-8 lg:px-10">
+    <div
+      v-if="successMessage"
+      class="mb-6 rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm font-medium text-green-600">
+      {{ successMessage }}
+    </div>
     <!-- Page Header -->
     <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div>
@@ -393,6 +445,13 @@ const filteredCustomers = computed(() => {
                     class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
                     Edit
                   </NuxtLink>
+
+                  <button
+                    type="button"
+                    class="rounded-lg border border-red-200 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50 hover:text-red-600"
+                    @click="handleDelete(customer.id, customer.name)">
+                    Delete
+                  </button>
                 </div>
               </td>
             </tr>
@@ -437,6 +496,45 @@ const filteredCustomers = computed(() => {
             Next
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+  <!-- Delete Confirmation Modal -->
+  <div
+    v-if="showDeleteModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+    <div
+      class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <div class="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl text-red-500">
+        !
+      </div>
+
+      <h2 class="text-xl font-bold text-[#173B63]">
+        Delete Customer
+      </h2>
+
+      <p class="mt-2 text-sm leading-6 text-slate-500">
+        Are you sure you want to delete
+        <span class="font-semibold text-slate-700">
+          {{ customerToDelete?.name }}
+        </span>?
+        This action cannot be undone.
+      </p>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          @click="showDeleteModal = false">
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
+          @click="confirmDelete">
+          Delete
+        </button>
       </div>
     </div>
   </div>
