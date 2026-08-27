@@ -115,13 +115,43 @@ const getStatus = (stock: number) => {
 }
 
 const successMessage = ref('')
+const showDeleteModal = ref(false)
+const productToDelete = ref<{
+  id: number
+  name: string
+} | null>(null)
 
 const confirmDelete = (id: number, name: string) => {
-  successMessage.value = ''
+  productToDelete.value = {
+    id,
+    name
+  }
+
+  showDeleteModal.value = true
+}
+
+const cancelDelete = () => {
+  showDeleteModal.value = false
+  productToDelete.value = null
+}
+
+const deleteConfirmed = () => {
+  if (!productToDelete.value) {
+    return
+  }
+
+  const { id, name } = productToDelete.value
 
   deleteProduct(id)
 
+  showDeleteModal.value = false
+  productToDelete.value = null
+
   successMessage.value = `${name} deleted successfully!`
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
 
   setTimeout(() => {
     successMessage.value = ''
@@ -479,6 +509,54 @@ watch(totalPages, () => {
             "
             @click="currentPage++">
             Next
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Delete Confirmation Modal -->
+    <div
+      v-if="showDeleteModal"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+      <div
+        class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <!-- Icon -->
+        <div
+          class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-2xl">
+          🗑️
+        </div>
+
+        <!-- Title -->
+        <h2 class="mt-5 text-center text-xl font-bold text-[#173B63]">
+          Delete Product?
+        </h2>
+
+        <!-- Message -->
+        <p class="mt-2 text-center text-sm leading-6 text-slate-500">
+          Are you sure you want to delete
+          <span class="font-semibold text-slate-700">
+            {{ productToDelete?.name }}
+          </span>
+          ?
+          <br>
+          This action cannot be undone.
+        </p>
+
+        <!-- Buttons -->
+        <div class="mt-6 flex gap-3">
+          <!-- Cancel -->
+          <button
+            type="button"
+            class="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            @click="cancelDelete">
+            Cancel
+          </button>
+
+          <!-- Delete -->
+          <button
+            type="button"
+            class="flex-1 rounded-xl bg-red-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-600"
+            @click="deleteConfirmed">
+            Delete
           </button>
         </div>
       </div>
