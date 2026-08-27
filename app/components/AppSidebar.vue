@@ -1,6 +1,29 @@
+<script setup lang="ts">
+const props = defineProps<{
+  isOpen: boolean
+  onClose?: () => void
+}>()
+
+const closeSidebar = () => {
+  props.onClose?.()
+}
+</script>
+
 <template>
+  <!-- Mobile Overlay -->
+  <div
+    v-if="props.isOpen"
+    class="fixed inset-0 z-30 bg-black/40 md:hidden"
+    @click="closeSidebar" />
+
+  <!-- Sidebar -->
   <aside
-    class="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[#174A78] text-white">
+    class="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-[#174A78] text-white transition-transform duration-300"
+    :class="
+      props.isOpen
+        ? 'translate-x-0'
+        : '-translate-x-full md:translate-x-0'
+    ">
     <!-- Logo -->
     <div class="flex h-20 items-center gap-3 border-b border-white/10 px-6">
       <div
@@ -17,55 +40,76 @@
           Business Dashboard
         </p>
       </div>
+
+      <!-- Mobile Close Button -->
+      <button
+        type="button"
+        class="ml-auto flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-lg hover:bg-white/20 md:hidden"
+        @click="closeSidebar">
+        ×
+      </button>
     </div>
 
     <!-- Navigation -->
     <nav class="flex-1 space-y-2 overflow-y-auto px-4 py-7">
+      <!-- Dashboard -->
       <NuxtLink
         to="/"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">⌂</span>
         Dashboard
       </NuxtLink>
 
+      <!-- Products -->
       <NuxtLink
         to="/products"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">▣</span>
         Products
       </NuxtLink>
 
+      <!-- Orders -->
       <NuxtLink
         to="/orders"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">🛒</span>
         Orders
       </NuxtLink>
 
+      <!-- Customers -->
       <NuxtLink
         to="/customers"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">♙</span>
         Customers
       </NuxtLink>
 
+      <!-- Analytics -->
       <NuxtLink
         to="/analytics"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">↗</span>
         Analytics
       </NuxtLink>
 
+      <!-- Notifications -->
       <NuxtLink
         to="/notifications"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">♢</span>
+
         Notifications
 
         <span
@@ -77,18 +121,22 @@
       <!-- Divider -->
       <div class="my-6 border-t border-white/10" />
 
+      <!-- Profile -->
       <NuxtLink
         to="/profile"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">◎</span>
         Profile
       </NuxtLink>
 
+      <!-- Settings -->
       <NuxtLink
         to="/settings"
         class="flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-blue-50 transition hover:bg-white/10"
-        active-class="bg-blue-500 text-white shadow-lg">
+        active-class="bg-blue-500 text-white shadow-lg"
+        @click="closeSidebar">
         <span class="text-lg">⚙</span>
         Settings
       </NuxtLink>

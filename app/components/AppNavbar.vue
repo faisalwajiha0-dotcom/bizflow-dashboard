@@ -2,6 +2,10 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
+const emit = defineEmits<{
+  openSidebar: []
+}>()
+
 const searchQuery = ref('')
 const showNotifications = ref(false)
 
@@ -41,10 +45,13 @@ const toggleNotifications = () => {
 }
 
 const markAsRead = (id: number) => {
-  const notification = notifications.value.find(item => item.id === id)
+  const notification = notifications.value.find(
+    item => item.id === id
+  )
 
   if (notification) {
     notification.read = true
+
     unreadCount.value = notifications.value.filter(
       item => !item.read
     ).length
@@ -82,24 +89,37 @@ onBeforeUnmount(() => {
 
 <template>
   <header
-    class="fixed left-64 right-0 top-0 z-20 h-20 border-b border-slate-200 bg-white px-8">
-    <div class="flex h-full items-center justify-between">
-      <!-- Heading -->
-      <div>
-        <h2 class="text-2xl font-bold text-[#173B63]">
-          Dashboard
-        </h2>
+    class="fixed left-0 right-0 top-0 z-20 h-20 border-b border-slate-200 bg-white px-4 sm:px-6 md:left-64 md:px-8">
+    <div class="flex h-full items-center justify-between gap-3">
+      <!-- Left Side -->
+      <div class="flex min-w-0 items-center gap-3">
+        <!-- Mobile Menu Button -->
+        <button
+          type="button"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-xl text-[#173B63] transition hover:bg-slate-50 md:hidden"
+          aria-label="Open menu"
+          @click="emit('openSidebar')">
+          ☰
+        </button>
 
-        <p class="text-sm text-slate-500">
-          Welcome back! Here's what's happening today.
-        </p>
+        <!-- Heading -->
+        <div class="min-w-0">
+          <h2
+            class="truncate text-lg font-bold text-[#173B63] sm:text-2xl">
+            Dashboard
+          </h2>
+
+          <p class="hidden text-sm text-slate-500 sm:block">
+            Welcome back! Here's what's happening today.
+          </p>
+        </div>
       </div>
 
       <!-- Right Side -->
-      <div class="flex items-center gap-5">
+      <div class="flex items-center gap-2 sm:gap-5">
         <!-- Search -->
         <div
-          class="hidden items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 md:flex">
+          class="hidden items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 lg:flex">
           <span class="text-slate-400">
             ⌕
           </span>
@@ -110,7 +130,6 @@ onBeforeUnmount(() => {
             placeholder="Search anything..."
             class="w-48 bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400">
 
-          <!-- Clear Search -->
           <button
             v-if="searchQuery"
             type="button"
@@ -123,13 +142,15 @@ onBeforeUnmount(() => {
         <!-- Search Result -->
         <div
           v-if="searchQuery"
-          class="absolute right-36 top-18 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
-          <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          class="absolute right-20 top-18 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-lg lg:right-36">
+          <p
+            class="text-xs font-semibold uppercase tracking-wide text-slate-400">
             Search
           </p>
 
           <p class="mt-2 text-sm text-[#173B63]">
             Searching for:
+
             <span class="font-semibold">
               {{ searchQuery }}
             </span>
@@ -181,7 +202,7 @@ onBeforeUnmount(() => {
         <div class="notification-wrapper relative">
           <button
             type="button"
-            class="relative flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50"
+            class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 sm:h-11 sm:w-11"
             @click.stop="toggleNotifications">
             ♢
 
@@ -196,7 +217,7 @@ onBeforeUnmount(() => {
           <!-- Notification Panel -->
           <div
             v-if="showNotifications"
-            class="absolute right-0 top-14 w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
+            class="absolute right-0 top-14 w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl">
             <!-- Panel Header -->
             <div
               class="flex items-center justify-between border-b border-slate-100 px-5 py-4">
@@ -206,7 +227,8 @@ onBeforeUnmount(() => {
                 </h3>
 
                 <p class="text-xs text-slate-400">
-                  {{ unreadCount }} unread notification<span v-if="unreadCount !== 1">s</span>
+                  {{ unreadCount }} unread notification<span
+                    v-if="unreadCount !== 1">s</span>
                 </p>
               </div>
 
@@ -226,7 +248,11 @@ onBeforeUnmount(() => {
                 :key="notification.id"
                 type="button"
                 class="flex w-full gap-3 border-b border-slate-100 px-5 py-4 text-left transition hover:bg-slate-50"
-                :class="!notification.read ? 'bg-blue-50/40' : 'bg-white'"
+                :class="
+                  !notification.read
+                    ? 'bg-blue-50/40'
+                    : 'bg-white'
+                "
                 @click="markAsRead(notification.id)">
                 <!-- Icon -->
                 <div
@@ -282,9 +308,9 @@ onBeforeUnmount(() => {
         <!-- Profile -->
         <NuxtLink
           to="/profile"
-          class="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-slate-50">
+          class="flex items-center gap-2 rounded-xl px-1 py-1.5 transition hover:bg-slate-50 sm:gap-3 sm:px-2">
           <div
-            class="flex h-10 w-10 items-center justify-center rounded-full bg-[#2879D8] text-sm font-bold text-white">
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2879D8] text-xs font-bold text-white sm:h-10 sm:w-10 sm:text-sm">
             WF
           </div>
 
@@ -297,7 +323,6 @@ onBeforeUnmount(() => {
               Administrator
             </p>
           </div>
-
         </NuxtLink>
       </div>
     </div>
