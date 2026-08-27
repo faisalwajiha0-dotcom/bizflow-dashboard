@@ -121,6 +121,38 @@ export const useOrders = () => {
 
     return true
   }
+
+  // Update complete order
+  const updateOrder = (
+    id: string,
+    updatedData: Partial<Omit<Order, 'id'>>
+  ) => {
+    const order = orders.value.find(order => order.id === id)
+
+    if (!order) {
+      return false
+    }
+
+    Object.assign(order, updatedData)
+
+    // Customer name change hone par initials bhi update hon
+    if (updatedData.customer) {
+      order.initials = updatedData.customer
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map(name => name.charAt(0))
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    }
+
+    saveOrders()
+
+    return true
+  }
+
+  // Add new order
   const addOrder = (order: Omit<Order, 'id'>) => {
     const newOrder: Order = {
       id: `#ORD-${Date.now().toString().slice(-4)}`,
@@ -133,6 +165,7 @@ export const useOrders = () => {
     return newOrder
   }
 
+  // Delete order
   const deleteOrder = (id: string) => {
     orders.value = orders.value.filter(
       order => order.id !== id
@@ -141,6 +174,7 @@ export const useOrders = () => {
     saveOrders()
   }
 
+  // Get single order
   const getOrder = (id: string) => {
     return orders.value.find(
       order => order.id === id
@@ -153,6 +187,7 @@ export const useOrders = () => {
     saveOrders,
     addOrder,
     updateOrderStatus,
+    updateOrder,
     deleteOrder,
     getOrder
   }

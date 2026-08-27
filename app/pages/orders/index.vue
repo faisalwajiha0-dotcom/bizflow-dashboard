@@ -17,7 +17,7 @@ const {
 onMounted(() => {
   loadOrders()
 })
-
+const successMessage = ref('')
 const filteredOrders = computed(() => {
   let result = [...orders.value]
 
@@ -115,20 +115,25 @@ const changeStatus = (
 }
 
 const removeOrder = (id: string) => {
-  const confirmed = window.confirm(
-    'Are you sure you want to delete this order?'
-  )
-
-  if (!confirmed) {
-    return
-  }
+  successMessage.value = ''
 
   deleteOrder(id)
+
+  successMessage.value = `Order deleted successfully!`
+
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3500)
 }
 </script>
 
 <template>
   <div class="min-h-full bg-[#F5F8FC] px-4 py-4 sm:px-8 lg:px-10">
+    <div
+      v-if="successMessage"
+      class="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+      {{ successMessage }}
+    </div>
     <!-- Page Header -->
     <div class="mb-8 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div>
@@ -498,12 +503,21 @@ const removeOrder = (id: string) => {
               <!-- Action -->
               <td class="px-7 py-5">
                 <div class="flex justify-end gap-2">
+                  <!-- View -->
                   <NuxtLink
                     :to="`/orders/${encodeURIComponent(order.id)}`"
                     class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-[#2879D8]">
                     View
                   </NuxtLink>
 
+                  <!-- Edit -->
+                  <NuxtLink
+                    :to="`/orders/${encodeURIComponent(order.id)}/edit`"
+                    class="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600">
+                    Edit
+                  </NuxtLink>
+
+                  <!-- Delete -->
                   <button
                     type="button"
                     class="rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"

@@ -3,9 +3,16 @@ definePageMeta({
   layout: 'dashboard'
 })
 
+const route = useRoute()
 const router = useRouter()
 
-const { addOrder } = useOrders()
+const {
+  loadOrders,
+  getOrder,
+  updateOrder
+} = useOrders()
+
+const orderId = String(route.params.id)
 
 const form = reactive({
   customer: '',
@@ -23,9 +30,32 @@ const form = reactive({
 
 const errorMessage = ref('')
 const successMessage = ref('')
+const orderFound = ref(true)
 
-const submitOrder = () => {
+const loadOrderData = () => {
+  const order = getOrder(orderId)
+
+  if (!order) {
+    orderFound.value = false
+    return
+  }
+
+  form.customer = order.customer
+  form.email = order.email
+  form.product = order.product
+  form.date = order.date
+  form.amount = order.amount
+  form.status = order.status
+}
+
+onMounted(() => {
+  loadOrders()
+  loadOrderData()
+})
+
+const submitEdit = () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (
     !form.customer.trim()
@@ -38,32 +68,23 @@ const submitOrder = () => {
     return
   }
 
-  const initials = form.customer
-    .trim()
-    .split(' ')
-    .filter(Boolean)
-    .map(name => name.charAt(0))
-    .join('')
-    .slice(0, 2)
-    .toUpperCase()
-
-  addOrder({
+  const updated = updateOrder(orderId, {
     customer: form.customer.trim(),
     email: form.email.trim(),
     product: form.product.trim(),
     date: form.date,
     amount: form.amount.trim(),
-    status: form.status,
-    initials,
-    avatar: 'bg-blue-100 text-[#2879D8]'
+    status: form.status
   })
-  successMessage.value = `Order for ${form.customer.trim()} created successfully!`
-  setTimeout(() => {
-    router.push('/orders')
-  }, 1500)
+
+  if (!updated) {
+    errorMessage.value = 'Order could not be found.'
+    return
+  }
+
+  successMessage.value = 'Order updated successfully.'
 }
 
-// Cancel Order
 const cancelOrder = () => {
   router.push('/orders')
 }
@@ -86,16 +107,42 @@ const cancelOrder = () => {
       </div>
 
       <h1 class="text-3xl font-bold tracking-tight text-[#173B63] sm:text-4xl">
-        Create Order
+        Edit Order
       </h1>
 
       <p class="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
-        Create a new customer order and add it to your orders list.
+        Update the customer and order information below.
       </p>
     </div>
 
-    <!-- Form Card -->
-    <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+    <!-- Order Not Found -->
+    <div
+      v-if="!orderFound"
+      class="rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
+      <div class="text-4xl">
+        📦
+      </div>
+
+      <h2 class="mt-4 text-xl font-bold text-[#173B63]">
+        Order Not Found
+      </h2>
+
+      <p class="mt-2 text-sm text-slate-500">
+        This order does not exist or may have been deleted.
+      </p>
+
+      <button
+        type="button"
+        class="mt-6 inline-flex rounded-xl bg-[#2879D8] px-5 py-3 text-sm font-semibold text-white"
+        @click="cancelOrder">
+        Back to Orders
+      </button>
+    </div>
+
+    <!-- Form -->
+    <div
+      v-else
+      class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
       <!-- Card Header -->
       <div class="border-b border-slate-100 px-6 py-5 sm:px-8">
         <h2 class="text-xl font-bold text-[#173B63]">
@@ -103,27 +150,30 @@ const cancelOrder = () => {
         </h2>
 
         <p class="mt-1.5 text-sm text-slate-500">
-          Enter the customer and order details below.
+          Update the customer and order details below.
         </p>
       </div>
 
       <!-- Form -->
       <form
         class="p-6 sm:p-8"
-        @submit.prevent="submitOrder">
-        <!-- Error -->
+        @submit.prevent="submitEdit">
+        <!-- Success Message -->
+        <div
+          v-if="successMessage"
+          class="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+          ✓ {{ successMessage }}
+        </div>
+
+        <!-- Error Message -->
         <div
           v-if="errorMessage"
           class="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
           {{ errorMessage }}
         </div>
-        <div
-          v-if="successMessage"
-          class="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">
-          ✓ {{ successMessage }}
-        </div>
+
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <!-- Customer Name -->
+          <!-- Customer -->
           <div>
             <label class="mb-2 block text-sm font-semibold text-slate-600">
               Customer Name
@@ -231,7 +281,7 @@ const cancelOrder = () => {
           <button
             type="submit"
             class="inline-flex justify-center rounded-xl bg-[#2879D8] px-6 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-[#174A78]">
-            + Create Order
+            Save Changes
           </button>
         </div>
       </form>

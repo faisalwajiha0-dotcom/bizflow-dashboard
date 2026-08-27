@@ -125,7 +125,7 @@ const confirmDelete = (id: number, name: string) => {
 
   setTimeout(() => {
     successMessage.value = ''
-  }, 2500)
+  }, 3500)
 }
 watch(
   [searchQuery, selectedCategory, selectedStatus],
