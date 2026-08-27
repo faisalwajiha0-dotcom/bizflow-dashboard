@@ -18,6 +18,35 @@ onMounted(() => {
   loadOrders()
 })
 const successMessage = ref('')
+const showDeleteModal = ref(false)
+
+const orderToDelete = ref<string | null>(null)
+
+const openDeleteModal = (id: string) => {
+  orderToDelete.value = id
+  showDeleteModal.value = true
+}
+
+const confirmDelete = () => {
+  if (!orderToDelete.value) {
+    return
+  }
+
+  deleteOrder(orderToDelete.value)
+
+  showDeleteModal.value = false
+  orderToDelete.value = null
+
+  successMessage.value = 'Order deleted successfully!'
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 3500)
+}
 const filteredOrders = computed(() => {
   let result = [...orders.value]
 
@@ -112,18 +141,6 @@ const changeStatus = (
   status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled'
 ) => {
   updateOrderStatus(id, status)
-}
-
-const removeOrder = (id: string) => {
-  successMessage.value = ''
-
-  deleteOrder(id)
-
-  successMessage.value = `Order deleted successfully!`
-
-  setTimeout(() => {
-    successMessage.value = ''
-  }, 3500)
 }
 </script>
 
@@ -521,7 +538,7 @@ const removeOrder = (id: string) => {
                   <button
                     type="button"
                     class="rounded-lg border border-red-100 px-3 py-2 text-xs font-semibold text-red-500 transition hover:bg-red-50"
-                    @click="removeOrder(order.id)">
+                    @click="openDeleteModal(order.id)">
                     Delete
                   </button>
                 </div>
@@ -568,6 +585,49 @@ const removeOrder = (id: string) => {
             Next
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+  <!-- Delete Confirmation Modal -->
+  <div
+    v-if="showDeleteModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
+    <div
+      class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <!-- Icon -->
+      <div
+        class="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-xl font-bold text-red-500">
+        !
+      </div>
+
+      <!-- Title -->
+      <h2 class="text-xl font-bold text-[#173B63]">
+        Delete Order
+      </h2>
+
+      <!-- Message -->
+      <p class="mt-2 text-sm leading-6 text-slate-500">
+        Are you sure you want to delete this order?
+        This action cannot be undone.
+      </p>
+
+      <!-- Buttons -->
+      <div class="mt-6 flex justify-end gap-3">
+        <!-- Cancel -->
+        <button
+          type="button"
+          class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+          @click="showDeleteModal = false">
+          Cancel
+        </button>
+
+        <!-- Delete -->
+        <button
+          type="button"
+          class="rounded-xl bg-red-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
+          @click="confirmDelete">
+          Delete
+        </button>
       </div>
     </div>
   </div>

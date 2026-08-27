@@ -83,8 +83,14 @@ const submitEdit = () => {
   }
 
   successMessage.value = 'Order updated successfully.'
+
+  setTimeout(() => {
+    successMessage.value = ''
+    router.push('/orders')
+  }, 2000)
 }
 
+// 👇 Ye function missing tha
 const cancelOrder = () => {
   router.push('/orders')
 }
