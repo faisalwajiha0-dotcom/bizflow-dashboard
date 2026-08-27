@@ -5,7 +5,6 @@ definePageMeta({
 })
 
 const router = useRouter()
-const toast = useToast()
 
 const { addCustomer } = useCustomers()
 
@@ -23,8 +22,11 @@ const form = reactive({
 
 const errorMessage = ref('')
 
+const successMessage = ref('')
+
 const submitCustomer = () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (
     !form.name.trim()
@@ -60,13 +62,11 @@ const submitCustomer = () => {
     initials
   })
 
-  toast.add({
-    title: 'Customer Added Successfully',
-    description: `${newCustomer.name} has been added to your customers.`,
-    color: 'success'
-  })
+  successMessage.value = `${newCustomer.name} has been added successfully!`
 
-  router.push('/customers')
+  setTimeout(() => {
+    router.push('/customers')
+  }, 1500)
 }
 </script>
 
@@ -95,6 +95,11 @@ const submitCustomer = () => {
           v-if="errorMessage"
           class="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
           {{ errorMessage }}
+        </div>
+        <div
+          v-if="successMessage"
+          class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-600">
+          ✓ {{ successMessage }}
         </div>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
