@@ -114,16 +114,18 @@ const getStatus = (stock: number) => {
   return 'In Stock'
 }
 
-const toast = useToast()
+const successMessage = ref('')
 
 const confirmDelete = (id: number, name: string) => {
+  successMessage.value = ''
+
   deleteProduct(id)
 
-  toast.add({
-    title: 'Product Deleted Successfully',
-    description: `${name} has been removed from your products.`,
-    color: 'success'
-  })
+  successMessage.value = `${name} deleted successfully!`
+
+  setTimeout(() => {
+    successMessage.value = ''
+  }, 2500)
 }
 watch(
   [searchQuery, selectedCategory, selectedStatus],
@@ -163,6 +165,12 @@ watch(totalPages, () => {
         <span class="mr-2 text-lg">+</span>
         Add Product
       </NuxtLink>
+    </div>
+    <!-- Success Message -->
+    <div
+      v-if="successMessage"
+      class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+      ✓ {{ successMessage }}
     </div>
 
     <!-- Stats -->

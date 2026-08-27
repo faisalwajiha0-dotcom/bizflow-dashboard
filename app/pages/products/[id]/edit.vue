@@ -6,7 +6,6 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
 
 const {
   loadProducts,
@@ -26,6 +25,7 @@ const form = reactive({
 })
 
 const errorMessage = ref('')
+const successMessage = ref('')
 const productFound = ref(true)
 
 const loadProductData = () => {
@@ -51,6 +51,7 @@ onMounted(() => {
 
 const submitEdit = () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (
     !form.name.trim()
@@ -80,17 +81,13 @@ const submitEdit = () => {
     return
   }
 
-  // Success Toast
-  toast.add({
-    title: 'Product Updated Successfully',
-    description: `${form.name.trim()} has been updated successfully.`,
-    color: 'success'
-  })
+  // Success message
+  successMessage.value = 'Product updated successfully!'
 
-  // Toast show hone ke baad products page par redirect
+  // Products page par redirect
   setTimeout(() => {
     router.push('/products')
-  }, 500)
+  }, 1500)
 }
 </script>
 
@@ -161,7 +158,11 @@ const submitEdit = () => {
           class="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
           {{ errorMessage }}
         </div>
-
+        <div
+          v-if="successMessage"
+          class="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+          ✓ {{ successMessage }}
+        </div>
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div class="sm:col-span-2">
             <label class="mb-2 block text-sm font-semibold text-slate-600">

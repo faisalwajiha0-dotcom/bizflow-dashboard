@@ -3,7 +3,7 @@
 definePageMeta({
   layout: 'dashboard'
 })
-const toast = useToast()
+
 const router = useRouter()
 
 const { addProduct } = useProducts()
@@ -18,9 +18,11 @@ const form = reactive({
 })
 
 const errorMessage = ref('')
+const successMessage = ref('')
 
 const submitProduct = () => {
   errorMessage.value = ''
+  successMessage.value = ''
 
   if (
     !form.name.trim()
@@ -47,17 +49,11 @@ const submitProduct = () => {
     icon: form.icon || '📦'
   })
 
-  // Success Toast
-  toast.add({
-    title: 'Product Added Successfully',
-    description: `${newProduct.name} has been added to your products.`,
-    color: 'success'
-  })
+  successMessage.value = `${newProduct.name} saved successfully!`
 
-  // Thori dair baad Products page par jao
   setTimeout(() => {
     router.push('/products')
-  }, 500)
+  }, 1000)
 }
 </script>
 
@@ -105,6 +101,12 @@ const submitProduct = () => {
           v-if="errorMessage"
           class="mb-6 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
           {{ errorMessage }}
+        </div>
+        <!-- Success -->
+        <div
+          v-if="successMessage"
+          class="mb-6 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-600">
+          ✓ {{ successMessage }}
         </div>
 
         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
